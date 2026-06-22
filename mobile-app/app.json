@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Bellakera",
+    "slug": "bellakera",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": false,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.bellakera.app"
+    },
+    "android": {
+      "package": "com.bellakera.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0a"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
