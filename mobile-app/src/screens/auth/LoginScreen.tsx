@@ -1,81 +1,241 @@
+// mobile-app/src/screens/auth/LoginScreen.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { useAuth } from '../../context/AuthContext';
-import { AuthStackParamList } from '../../navigation/AuthNavigator';
-import { colors } from '../../theme/colors';
 
-export default function LoginScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const { login } = useAuth();
-  const [telefono, setTelefono] = useState('+56');
+export default function LoginScreen({ navigation }: any) {
+  // ⚡ Solo guardamos los 9 dígitos del número, SIN el +56
+  const [numero, setNumero] = useState('');
   const [pin, setPin] = useState('');
-  const [cargando, setCargando] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (telefono.length < 8 || pin.length !== 4) {
-      Alert.alert('Error', 'Verifica el teléfono y el PIN de 4 dígitos');
-      return;
-    }
-    setCargando(true);
-    try {
-      await login(telefono, pin);
-    } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.message || 'Credenciales inválidas');
-    } finally {
-      setCargando(false);
+  const handleNumeroChange = (text: string) => {
+    // Solo permite dígitos numéricos
+    const soloDigitos = text.replace(/[^0-9]/g, '');
+    // Máximo 9 dígitos
+    if (soloDigitos.length <= 9) {
+      setNumero(soloDigitos);
     }
   };
 
+  const handlePinChange = (text: string) => {
+    const soloDigitos = text.replace(/[^0-9]/g, '');
+    if (soloDigitos.length <= 4) {
+      setPin(soloDigitos);
+    }
+  };
+
+  const handleLogin = async () => {
+    // Validaciones frontend estrictas
+    if (numero.length !== 9) {
+      Alert.alert(
+        'Número inválido',
+        `Debes ingresar 9 dígitos. Llevas ${numero.length}.`
+      );
+      return;
+    }
+
+    if (pin.length !== 4) {
+      Alert.alert('PIN inválido', 'El PIN debe tener 4 dígitos.');
+      return;
+    }
+
+    // 🎯 Construimos el teléfono completo con +56
+    const telefonoCompleto = `+56${numero}`;
+
+    console.log('🚀 Login con:', {
+      telefono: telefonoCompleto,
+      telefono_length: telefonoCompleto.length,
+      pin,
+      pin_length: pin.length,
+    });
+
+    try {
+      setLoading(true);
+      await login(telefonoCompleto, pin);
+    } catch (error: any) {
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Credenciales inválidas'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const { login } = useAuth();
+
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
-      <Text style={styles.titulo}>BELLAKERA</Text>
-      <Text style={styles.subtitulo}>Inicia sesión</Text>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.content}>
+        <Text style={styles.title}>BELLAKERA 🔥</Text>
+        <Text style={styles.subtitle}>Inicia sesión</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Teléfono (+56912345678)"
-        placeholderTextColor={colors.textMuted}
-        keyboardType="phone-pad"
-        value={telefono}
-        onChangeText={setTelefono}
-      />
+        {/* Input de teléfono con prefijo fijo */}
+        <Text style={styles.label}>Teléfono</Text>
+        <View style={styles.telefonoContainer}>
+          <View style={styles.prefijoBox}>
+            <Text style={styles.prefijoText}>+56</Text>
+          </View>
+          <TextInput
+            style={styles.numeroInput}
+            placeholder="912345678"
+            placeholderTextColor="#888"
+            keyboardType="number-pad"
+            value={numero}
+            onChangeText={handleNumeroChange}
+            maxLength={9}
+            autoFocus
+          />
+        </View>
+        <Text style={styles.helperText}>
+          {numero.length}/9 dígitos
+        </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="PIN (4 dígitos)"
-        placeholderTextColor={colors.textMuted}
-        keyboardType="number-pad"
-        maxLength={4}
-        secureTextEntry
-        value={pin}
-        onChangeText={setPin}
-      />
+        {/* Input de PIN */}
+        <Text style={styles.label}>PIN (4 dígitos)</Text>
+        <TextInput
+          style={styles.pinInput}
+          placeholder="••••"
+          placeholderTextColor="#888"
+          keyboardType="number-pad"
+          value={pin}
+          onChangeText={handlePinChange}
+          maxLength={4}
+          secureTextEntry
+        />
+        <Text style={styles.helperText}>{pin.length}/4 dígitos</Text>
 
-      <TouchableOpacity style={styles.boton} onPress={handleLogin} disabled={cargando}>
-        <Text style={styles.botonText}>{cargando ? 'Ingresando...' : 'INGRESAR'}</Text>
-      </TouchableOpacity>
+        {/* Botón Login */}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            (numero.length !== 9 || pin.length !== 4) && styles.buttonDisabled,
+          ]}
+          onPress={handleLogin}
+          disabled={loading || numero.length !== 9 || pin.length !== 4}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>INGRESAR</Text>
+          )}
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
-      </TouchableOpacity>
+        {/* Link a registro */}
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 30, justifyContent: 'center' },
-  titulo: { fontSize: 42, fontWeight: 'bold', color: colors.primary, textAlign: 'center', marginBottom: 8, letterSpacing: 3 },
-  subtitulo: { fontSize: 18, color: colors.text, textAlign: 'center', marginBottom: 40 },
-  input: {
-    backgroundColor: colors.card, color: colors.text, padding: 16, borderRadius: 10,
-    marginBottom: 15, borderWidth: 1, borderColor: colors.border, fontSize: 16,
+  container: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
   },
-  boton: {
-    backgroundColor: colors.primary, padding: 16, borderRadius: 10,
-    alignItems: 'center', marginTop: 10,
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
   },
-  botonText: { color: '#fff', fontWeight: 'bold', fontSize: 16, letterSpacing: 1 },
-  link: { color: colors.accent, textAlign: 'center', marginTop: 25, fontSize: 14 },
+  title: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: '#ff1493',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  label: {
+    color: '#fff',
+    fontSize: 14,
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  telefonoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  prefijoBox: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRightWidth: 1,
+    borderRightColor: '#333',
+  },
+  prefijoText: {
+    color: '#ff1493',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  numeroInput: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+  },
+  pinInput: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+    color: '#fff',
+    fontSize: 20,
+    textAlign: 'center',
+    letterSpacing: 8,
+    paddingVertical: 14,
+  },
+  helperText: {
+    color: '#666',
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: 'right',
+  },
+  button: {
+    backgroundColor: '#ff1493',
+    paddingVertical: 16,
+    borderRadius: 8,
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#555',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+  },
+  link: {
+    color: '#ff1493',
+    textAlign: 'center',
+    marginTop: 24,
+    fontSize: 14,
+  },
 });
