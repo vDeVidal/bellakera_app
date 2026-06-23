@@ -1,21 +1,25 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class JwtStrategy {
-  constructor(private jwt: JwtService) {}
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private config: ConfigService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: config.get<string>('JWT_SECRET'),
+    });
+  }
 
-  validateRequest(req: Request): any {
-    const auth = req.headers['authorization'];
-    if (!auth || !auth.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Token requerido');
-    }
-    const token = auth.split(' ')[1];
-    try {
-      return this.jwt.verify(token);
-    } catch {
-      throw new UnauthorizedException('Token inválido');
-    }
+  // Lo que retorne acá será req.user en los controllers
+  async validate(payload: any) {
+    return {
+      sub: payload.sub,
+      telefono: payload.telefono,
+      tipo: payload.tipo, // 'usuario' | 'admin'
+      rol: payload.rol,   // solo si es admin
+    };
   }
 }

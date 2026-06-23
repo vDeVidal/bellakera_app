@@ -36,6 +36,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - ./backend/uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy

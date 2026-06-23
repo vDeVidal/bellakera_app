@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiClient } from '../api/client';
 
@@ -65,7 +65,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     cargarSesion();
   }, []);
 
-  // Guardar sesión completa (usado por login y verificación de código)
   const guardarSesion = async (data: { access_token: string; tipo: TipoCuenta; usuario: Usuario }) => {
     try {
       await AsyncStorage.setItem('token', data.access_token);
@@ -81,7 +80,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     }
   };
 
-  // Login (usuario o admin)
   const login = async (telefono: string, pin: string) => {
     try {
       const response = await apiClient.post('/auth/login', { telefono, pin });
@@ -102,7 +100,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     }
   };
 
-  // Cerrar sesión
   const logout = async () => {
     try {
       await AsyncStorage.removeItem('token');
@@ -116,7 +113,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     }
   };
 
-  // Refrescar datos del usuario desde el backend
   const refrescarUsuario = async () => {
     try {
       if (!token) return;
@@ -145,4 +141,15 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
+};
+
+// ============================================
+// 🪝 HOOK PERSONALIZADO useAuth
+// ============================================
+export const useAuth = (): AuthContextProps => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth debe usarse dentro de un AuthProvider');
+  }
+  return context;
 };
