@@ -5,8 +5,12 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { api, buildImageUrl } from '../../api/client';
+import { api } from '../../api/client';
 import { useIsAdmin } from '../../hooks/useIsAdmin';
+
+// IMPORTACIÓN DE ASSETS LOCALES PARA EL PARCHE DEL VIDEO
+const flyer1 = require('../../../assets/halloween_bellako.png');
+const flyer2 = require('../../../assets/bellakera_otro.png');
 
 interface Evento {
   id_evento: number;
@@ -48,19 +52,20 @@ export default function EventosScreen() {
       day: '2-digit', month: 'short', year: 'numeric',
     });
 
+    // PARCHE: Alterna dinámicamente las imágenes locales según el id del evento
+    const imagenLocal = item.id_evento % 2 === 0 ? flyer1 : flyer2;
+
     return (
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('EventoDetalle', { id: item.id_evento })}
         activeOpacity={0.85}
       >
-        {item.flyer_url ? (
-          <Image source={{ uri: buildImageUrl(item.flyer_url) }} style={styles.flyer} />
-        ) : (
-          <View style={[styles.flyer, styles.flyerPlaceholder]}>
-            <Ionicons name="image-outline" size={48} color="#666" />
-          </View>
-        )}
+        <Image 
+          source={imagenLocal} 
+          style={styles.flyer} 
+          resizeMode="cover"
+        />
         <View style={styles.info}>
           <Text style={styles.nombre} numberOfLines={1}>{item.nombre}</Text>
           <Text style={styles.fecha}>{fechaTexto}</Text>
@@ -121,7 +126,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a', borderRadius: 16, marginBottom: 16, overflow: 'hidden',
   },
   flyer: { width: '100%', height: 220, backgroundColor: '#222' },
-  flyerPlaceholder: { justifyContent: 'center', alignItems: 'center' },
   info: { padding: 14 },
   nombre: { color: '#fff', fontSize: 18, fontWeight: '700' },
   fecha: { color: '#ff2d75', fontSize: 13, marginTop: 2 },

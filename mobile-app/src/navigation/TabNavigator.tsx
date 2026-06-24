@@ -65,7 +65,7 @@ export default function TabNavigator() {
         <Tab.Screen
           name="Entradas"
           component={EntradasScreen}
-          options={{ title: 'Mis Entradas' }}
+          options={{ title: 'Ventas' }}
         />
       )}
 

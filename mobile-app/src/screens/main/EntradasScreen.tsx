@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert,
 } from 'react-native';
-import { colors } from '../../theme/colors';
 
 type Tab = 'entradas' | 'barra';
 
@@ -10,7 +9,6 @@ export default function EntradasScreen() {
   const [tab, setTab] = useState<Tab>('entradas');
   const [carrito, setCarrito] = useState<{ [key: number]: number }>({});
 
-  // Datos de ejemplo (luego vendrán del API)
   const items = tab === 'entradas'
     ? [{ id: 1, nombre: 'Acceso Normal Carrete "Como Antes"', precio: 5000 }]
     : [
@@ -44,6 +42,7 @@ export default function EntradasScreen() {
     <View style={styles.container}>
       <Text style={styles.titulo}>Caja Virtual</Text>
 
+      {/* Tabs */}
       <View style={styles.tabs}>
         <TouchableOpacity
           style={[styles.tab, tab === 'entradas' && styles.tabActive]}
@@ -63,12 +62,14 @@ export default function EntradasScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Caja de Subtotal Unificada en Negro Puro */}
       <View style={styles.subtotalBox}>
-        <Text style={styles.subtotalLabel}>SUBTOTAL:</Text>
+        <Text style={styles.subtotalLabel}>TOTAL CARRITO</Text>
         <Text style={styles.subtotalValue}>${subtotal.toLocaleString()}</Text>
       </View>
 
-      <ScrollView style={styles.lista}>
+      {/* Listado de Productos */}
+      <ScrollView style={styles.lista} showsVerticalScrollIndicator={false}>
         {items.map((item) => (
           <View key={item.id} style={styles.item}>
             <View style={styles.itemInfo}>
@@ -94,47 +95,146 @@ export default function EntradasScreen() {
         ))}
       </ScrollView>
 
+      {/* Botón de Pago abajo */}
       <TouchableOpacity style={styles.btnPagar} onPress={handlePagar}>
-        <Text style={styles.btnPagarText}>PAGA AQUÍ</Text>
+        <Text style={styles.btnPagarText}>PAGAR AQUÍ</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
-  titulo: { fontSize: 24, fontWeight: 'bold', color: colors.primary, marginBottom: 16 },
-  tabs: { flexDirection: 'row', backgroundColor: colors.card, borderRadius: 8, marginBottom: 16, padding: 4 },
-  tab: { flex: 1, padding: 12, alignItems: 'center', borderRadius: 6 },
-  tabActive: { backgroundColor: colors.background },
-  tabText: { color: colors.textMuted, fontWeight: 'bold', fontSize: 13 },
-  tabTextActive: { color: colors.text },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#0a0a0a', 
+    padding: 16 
+  },
+  titulo: { 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    color: '#fff', 
+    marginBottom: 16,
+    letterSpacing: 0.5
+  },
+  tabs: { 
+    flexDirection: 'row', 
+    backgroundColor: '#121212', 
+    borderRadius: 10, 
+    marginBottom: 16, 
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#1f1f1f'
+  },
+  tab: { 
+    flex: 1, 
+    padding: 12, 
+    alignItems: 'center', 
+    borderRadius: 8 
+  },
+  tabActive: { 
+    backgroundColor: '#1a1a1a' 
+  },
+  tabText: { 
+    color: '#666', 
+    fontWeight: 'bold', 
+    fontSize: 13,
+    letterSpacing: 0.5
+  },
+  tabTextActive: { 
+    color: '#ff2d75' 
+  },
   subtotalBox: {
-    backgroundColor: colors.primary, padding: 16, borderRadius: 10,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16,
+    backgroundColor: '#121212', 
+    padding: 18, 
+    borderRadius: 12,
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#1f1f1f'
   },
-  subtotalLabel: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  subtotalValue: { color: '#fff', fontWeight: 'bold', fontSize: 20 },
-  lista: { flex: 1 },
+  subtotalLabel: { 
+    color: '#aaa', 
+    fontWeight: 'bold', 
+    fontSize: 14,
+    letterSpacing: 0.5
+  },
+  subtotalValue: { 
+    color: '#fff', 
+    fontWeight: 'bold', 
+    fontSize: 22 
+  },
+  lista: { 
+    flex: 1 
+  },
   item: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card,
-    padding: 14, borderRadius: 10, marginBottom: 10,
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#121212',
+    padding: 16, 
+    borderRadius: 12, 
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#1f1f1f'
   },
-  itemInfo: { flex: 1 },
-  itemNombre: { color: colors.text, fontSize: 14, fontWeight: '600', marginBottom: 4 },
-  itemPrecio: { color: colors.accent, fontSize: 13 },
-  controles: { flexDirection: 'row', alignItems: 'center' },
+  itemInfo: { 
+    flex: 1 
+  },
+  itemNombre: { 
+    color: '#fff', 
+    fontSize: 15, 
+    fontWeight: '600', 
+    marginBottom: 4 
+  },
+  itemPrecio: { 
+    color: '#aaa', 
+    fontSize: 13,
+    fontWeight: '500'
+  },
+  controles: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
   btnCantidad: {
-    width: 32, height: 32, backgroundColor: colors.primary, borderRadius: 6,
-    justifyContent: 'center', alignItems: 'center',
+    width: 34, 
+    height: 34, 
+    backgroundColor: '#1a1a1a', 
+    borderRadius: 8,
+    justifyContent: 'center', 
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333'
   },
-  btnCantidadText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  btnCantidadText: { 
+    color: '#fff', 
+    fontSize: 18, 
+    fontWeight: 'bold' 
+  },
   cantidad: {
-    color: colors.text, fontSize: 16, fontWeight: 'bold',
-    marginHorizontal: 12, minWidth: 24, textAlign: 'center',
+    color: '#fff', 
+    fontSize: 16, 
+    fontWeight: 'bold',
+    marginHorizontal: 14, 
+    minWidth: 20, 
+    textAlign: 'center',
   },
   btnPagar: {
-    backgroundColor: colors.primary, padding: 16, borderRadius: 10, alignItems: 'center', marginTop: 16,
+    backgroundColor: '#ff2d75', 
+    padding: 16, 
+    borderRadius: 12, 
+    alignItems: 'center', 
+    marginTop: 12,
+    shadowColor: '#ff2d75',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  btnPagarText: { color: '#fff', fontWeight: 'bold', fontSize: 16, letterSpacing: 1 },
+  btnPagarText: { 
+    color: '#fff', 
+    fontWeight: 'bold', 
+    fontSize: 16, 
+    letterSpacing: 1 
+  },
 });

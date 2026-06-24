@@ -2,11 +2,18 @@ import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
+import { useIsAdmin } from '../hooks/useIsAdmin';
 
+// Pantallas de Autenticación
 import LoginScreen from '../screens/auth/LoginScreen';
 import RegisterScreen from '../screens/auth/RegisterScreen';
 import VerifyScreen from '../screens/auth/VerifyScreen';
-import TabNavigator from './TabNavigator';
+
+// Navegadores Principales por Rol
+import TabNavigator from './TabNavigator'; // El de usuarios/clientes
+import AdminTabNavigator from './AdminTabNavigator'; // Requerimos crear este para los admins
+
+// Pantallas Compartidas o Modales
 import EventoDetalleScreen from '../screens/main/EventoDetalleScreen';
 import EventoFormScreen from '../screens/main/EventoFormScreen';
 
@@ -14,6 +21,7 @@ const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
   const { token, cargando } = useAuth();
+  const isAdmin = useIsAdmin();
 
   if (cargando) {
     return (
@@ -27,7 +35,14 @@ export default function RootNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {token ? (
         <>
-          <Stack.Screen name="Main" component={TabNavigator} />
+          {/* Decisión del flujo principal según el rol */}
+          {isAdmin ? (
+            <Stack.Screen name="AdminMain" component={AdminTabNavigator} />
+          ) : (
+            <Stack.Screen name="Main" component={TabNavigator} />
+          )}
+
+          {/* Pantallas comunes accesibles desde los tabs */}
           <Stack.Screen
             name="EventoDetalle"
             component={EventoDetalleScreen}
