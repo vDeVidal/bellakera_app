@@ -11,7 +11,7 @@ class DinamicasController {
   @Get()
   async listar() {
     return this.prisma.dinamica.findMany({
-      where: { estado: { in: ['programada', 'activa'] } },
+      where: { activa: true },
       orderBy: { fecha_inicio: 'asc' },
     });
   }
@@ -19,11 +19,11 @@ class DinamicasController {
   @Get(':id/ranking')
   async ranking(@Param('id') id: string) {
     return this.prisma.participacion.findMany({
-      where: { id_dinamica: +id },
+      where: { dinamica_id: +id },
       include: {
-        usuario: { select: { nombre: true, apellido: true, foto_perfil_url: true } },
+        usuario: { select: { nombre: true, avatar_url: true } },
       },
-      orderBy: { puntaje: 'desc' },
+      orderBy: { puntos: 'desc' },
       take: 10,
     });
   }

@@ -1,3 +1,4 @@
+// backend/prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,162 +8,194 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ==================== USUARIOS ====================
 model Usuario {
-  id_usuario         Int       @id @default(autoincrement())
-  telefono           String    @unique @db.VarChar(15)
-  pin_hash           String    @db.VarChar(255)
-  nombre             String?   @db.VarChar(100)
-  apellido           String?   @db.VarChar(100)
-  foto_perfil_url    String?
-  fecha_nacimiento   DateTime? @db.Date
-  fecha_registro     DateTime  @default(now())
-  ultimo_acceso      DateTime?
-  estado             String    @default("pendiente") @db.VarChar(20) // pendiente, activo, suspendido
-  verificado         Boolean   @default(false)
-  codigo_verificacion String?  @db.VarChar(10)
-  codigo_expira      DateTime?
-  puntos_acumulados  Int       @default(0)
+  id                Int       @id @default(autoincrement())
+  telefono          String    @unique
+  nombre            String
+  pin_hash          String
+  verificado        Boolean   @default(false)
+  codigo_sms        String?
+  codigo_expira     DateTime?
+  avatar_url        String?
+  fecha_registro    DateTime  @default(now())
+  ultima_conexion   DateTime?
 
-  redes_sociales     RedSocial[]
-  ventas             Venta[]
-
-  galeria            Galeria[]
-  likes              LikeGaleria[]
-  participaciones    Participacion[]
+  red_social        RedSocial?
+  galerias          Galeria[]
+  likes             LikeGaleria[]
+  participaciones   Participacion[]
+  ventas            Venta[]
 
   @@map("usuarios")
 }
 
 model RedSocial {
-  id_red      Int     @id @default(autoincrement())
-  id_usuario  Int
-  plataforma  String  @db.VarChar(50)
-  username    String  @db.VarChar(100)
-  url         String?
+  id           Int      @id @default(autoincrement())
+  usuario_id   Int      @unique
+  bio          String?
+  intereses    String?
+  instagram    String?
+  fecha_update DateTime @default(now())
 
-  usuario     Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  usuario      Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
 
-  @@map("redes_sociales")
+  @@map("red_social")
 }
 
+// ==================== ADMINISTRADORES ====================
 model Administrador {
-  id_admin        Int       @id @default(autoincrement())
-  telefono        String    @unique @db.VarChar(15)
-  pin_hash        String    @db.VarChar(255)
-  nombre          String    @db.VarChar(100)
-  apellido        String    @db.VarChar(100)
-  rol             String    @db.VarChar(50)
-  activo          Boolean   @default(true)
-  fecha_creacion  DateTime  @default(now())
+  id             Int      @id @default(autoincrement())
+  telefono       String   @unique
+  nombre         String
+  pin_hash       String
+  rol            String   // SUPER_ADMIN, CAJA, PUERTA
+  activo         Boolean  @default(true)
+  fecha_registro DateTime @default(now())
 
-  eventos_creados Evento[]
+  ventas_atendidas Venta[] @relation("AdminAtiende")
 
   @@map("administradores")
 }
 
+// ==================== EVENTOS ====================
 model Evento {
-  id_evento         Int       @id @default(autoincrement())
-  nombre            String    @db.VarChar(200)
-  descripcion       String?
-  flyer_url         String?
-  fecha_evento      DateTime
-  estado            String    @default("proximo") @db.VarChar(20)
-  id_admin_creador  Int?
-  fecha_creacion    DateTime  @default(now())
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  descripcion   String?
+  fecha         DateTime
+  precio        Int      // Precio de entrada base en CLP
+  imagen_url    String?
+  estado        String   @default("ACTIVO") // ACTIVO, CERRADO, CANCELADO
+  aforo_maximo  Int?
+  fecha_cierre  DateTime?
+  fecha_creacion DateTime @default(now())
 
-  admin_creador     Administrador? @relation(fields: [id_admin_creador], references: [id_admin])
-  ventas            Venta[]
-
-  galeria           Galeria[]
+  ventas        Venta[]
+  dinamicas     Dinamica[]
+  galerias      Galeria[]
 
   @@map("eventos")
 }
 
+// ==================== PRODUCTOS ====================
 model Producto {
-  id_producto   Int       @id @default(autoincrement())
-  nombre        String    @db.VarChar(150)
-  precio        Decimal   @db.Decimal(10, 2)
-  stock_actual  Int       @default(0)
-  disponible    Boolean   @default(true)
+  id             Int      @id @default(autoincrement())
+  nombre         String
+  descripcion    String?
+  precio         Int      // Precio en CLP
+  stock          Int      @default(0)
+  disponible     Boolean  @default(true)
+  imagen_url     String?
+  fecha_creacion DateTime @default(now())
+
+  detalles       DetalleVenta[]
 
   @@map("productos")
 }
 
+// ==================== VENTAS ====================
 model Venta {
-  id_venta         Int       @id @default(autoincrement())
-  id_usuario       Int?
-  tipo_venta       String    @db.VarChar(20)
-  total            Decimal   @db.Decimal(10, 2)
-  estado_pago      String    @default("pendiente") @db.VarChar(20)
-  fecha_venta      DateTime  @default(now())
-  id_evento        Int?
+  id            Int      @id @default(autoincrement())
+  usuario_id    Int
+  evento_id     Int      // OBLIGATORIO
+  admin_id      Int?
+  tipo_venta    String   // "ENTRADA" | "BEBIDA"
+  estado        String   // "pendiente" | "pagado" | "preparando" | "listo" | "entregado" | "cancelado"
+  total         Decimal  @db.Decimal(10, 2)
+  metodo_pago   String?
+  notas         String?
+  qr_code       String?  @unique          // ← NUEVO
+  qr_escaneado  Boolean  @default(false)  // ← NUEVO
+  fecha         DateTime @default(now())
+  fecha_entrega DateTime?
 
-  usuario          Usuario?  @relation(fields: [id_usuario], references: [id_usuario])
-  evento           Evento?   @relation(fields: [id_evento], references: [id_evento])
+  usuario  Usuario        @relation(fields: [usuario_id], references: [id])
+  evento   Evento         @relation(fields: [evento_id], references: [id])
+  admin    Administrador? @relation("AdminAtiende", fields: [admin_id], references: [id])
+  detalles DetalleVenta[]
 
-  @@map("ventas")
+  @@index([evento_id])
+  @@index([usuario_id])
+  @@index([estado])
 }
 
+model DetalleVenta {
+  id              Int      @id @default(autoincrement())
+  venta_id        Int
+  producto_id     Int?              // ← AHORA OPCIONAL
+  nombre_snapshot String            // ← NUEVO (nombre histórico)
+  cantidad        Int
+  precio_unitario Decimal  @db.Decimal(10, 2)
+  subtotal        Decimal  @db.Decimal(10, 2)
+  estado          String   @default("pendiente")
+  notas           String?
+
+  venta    Venta     @relation(fields: [venta_id], references: [id], onDelete: Cascade)
+  producto Producto? @relation(fields: [producto_id], references: [id])
+
+  @@index([venta_id])
+  @@index([producto_id])
+}
+
+// ==================== GALERIA ====================
 model Galeria {
-  id_media           Int       @id @default(autoincrement())
-  id_usuario         Int
-  id_evento          Int?
-  tipo               String    @db.VarChar(10)
-  url                String
-  thumbnail_url      String?
-  descripcion        String?
-  fecha_subida       DateTime  @default(now())
-  estado_moderacion  String    @default("aprobado") @db.VarChar(20)
-  visible            Boolean   @default(true)
-  likes_count        Int       @default(0)
+  id            Int      @id @default(autoincrement())
+  usuario_id    Int
+  evento_id     Int?
+  imagen_url    String
+  descripcion   String?
+  aprobado      Boolean  @default(true)
+  fecha         DateTime @default(now())
 
-  usuario            Usuario   @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-  evento             Evento?   @relation(fields: [id_evento], references: [id_evento])
-  likes              LikeGaleria[]
+  usuario       Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  evento        Evento?  @relation(fields: [evento_id], references: [id])
+  likes         LikeGaleria[]
 
-  @@map("galeria")
+  @@map("galerias")
 }
 
 model LikeGaleria {
-  id_like      Int       @id @default(autoincrement())
-  id_media     Int
-  id_usuario   Int
-  fecha        DateTime  @default(now())
+  id          Int      @id @default(autoincrement())
+  usuario_id  Int
+  galeria_id  Int
+  fecha       DateTime @default(now())
 
-  media        Galeria   @relation(fields: [id_media], references: [id_media], onDelete: Cascade)
-  usuario      Usuario   @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  usuario     Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  galeria     Galeria  @relation(fields: [galeria_id], references: [id], onDelete: Cascade)
 
-  @@unique([id_media, id_usuario])
+  @@unique([usuario_id, galeria_id])
   @@map("likes_galeria")
 }
 
+// ==================== DINAMICAS ====================
 model Dinamica {
-  id_dinamica       Int       @id @default(autoincrement())
-  nombre            String    @db.VarChar(150)
-  descripcion       String?
-  tipo              String?   @db.VarChar(50)
-  reglas            String?
-  imagen_url        String?
-  fecha_inicio      DateTime?
-  fecha_fin         DateTime?
-  estado            String    @default("programada") @db.VarChar(20)
-  premio            String?
+  id            Int      @id @default(autoincrement())
+  evento_id     Int
+  tipo          String   // TRIVIA, VOTACION, SORTEO, RETO
+  titulo        String
+  descripcion   String?
+  activa        Boolean  @default(true)
+  fecha_inicio  DateTime @default(now())
+  fecha_fin     DateTime?
+  configuracion Json?    // Opciones de la dinámica (preguntas, opciones, etc)
 
-  participaciones   Participacion[]
+  evento        Evento   @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+  participaciones Participacion[]
 
   @@map("dinamicas")
 }
 
 model Participacion {
-  id_participacion    Int       @id @default(autoincrement())
-  id_dinamica         Int
-  id_usuario          Int
-  puntaje             Int       @default(0)
-  fecha_participacion DateTime  @default(now())
+  id           Int      @id @default(autoincrement())
+  usuario_id   Int
+  dinamica_id  Int
+  respuesta    Json?
+  puntos       Int      @default(0)
+  fecha        DateTime @default(now())
 
-  dinamica            Dinamica  @relation(fields: [id_dinamica], references: [id_dinamica], onDelete: Cascade)
-  usuario             Usuario   @relation(fields: [id_usuario], references: [id_usuario])
+  usuario      Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Cascade)
+  dinamica     Dinamica @relation(fields: [dinamica_id], references: [id], onDelete: Cascade)
 
-  @@unique([id_dinamica, id_usuario])
   @@map("participaciones")
 }

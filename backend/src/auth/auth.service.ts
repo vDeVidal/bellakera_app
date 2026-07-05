@@ -17,10 +17,10 @@ export class AuthService {
     telefono: string;
     pin: string;
     nombre: string;
-    apellido: string;
+    apellido?: string;
     fecha_nacimiento?: string;
   }) {
-    const { telefono, pin, nombre, apellido, fecha_nacimiento } = data;
+    const { telefono, pin, nombre } = data;
 
     // Validaciones básicas
     if (!/^\+56\d{9}$/.test(telefono)) {
@@ -48,12 +48,9 @@ export class AuthService {
         telefono,
         pin_hash: pinHash,
         nombre,
-        apellido,
-        fecha_nacimiento: fecha_nacimiento ? new Date(fecha_nacimiento) : null,
-        codigo_verificacion: codigo,
+        codigo_sms: codigo,
         codigo_expira: codigoExpira,
         verificado: false,
-        estado: 'activo',
       },
     });
 
@@ -62,7 +59,7 @@ export class AuthService {
 
     return {
       mensaje: 'Usuario registrado. Verifica tu cuenta con el código enviado.',
-      id_usuario: usuario.id_usuario,
+      id_usuario: usuario.id,
       telefono: usuario.telefono,
     };
   }
@@ -78,7 +75,7 @@ export class AuthService {
     if (usuario.verificado) {
       throw new BadRequestException('Usuario ya verificado');
     }
-    if (!usuario.codigo_verificacion || usuario.codigo_verificacion !== codigo) {
+    if (!usuario.codigo_sms || usuario.codigo_sms !== codigo) {
       throw new UnauthorizedException('Código incorrecto');
     }
     if (!usuario.codigo_expira || usuario.codigo_expira < new Date()) {
@@ -86,10 +83,10 @@ export class AuthService {
     }
 
     await this.prisma.usuario.update({
-      where: { id_usuario: usuario.id_usuario },
+      where: { id: usuario.id },
       data: {
         verificado: true,
-        codigo_verificacion: null,
+        codigo_sms: null,
         codigo_expira: null,
       },
     });
@@ -113,9 +110,9 @@ export class AuthService {
     const codigoExpira = new Date(Date.now() + 10 * 60 * 1000);
 
     await this.prisma.usuario.update({
-      where: { id_usuario: usuario.id_usuario },
+      where: { id: usuario.id },
       data: {
-        codigo_verificacion: codigo,
+        codigo_sms: codigo,
         codigo_expira: codigoExpira,
       },
     });
@@ -151,7 +148,7 @@ export class AuthService {
       }
 
       const payload = {
-        sub: admin.id_admin,
+        sub: admin.id,
         telefono: admin.telefono,
         tipo: 'admin',
         rol: admin.rol,
@@ -162,10 +159,9 @@ export class AuthService {
         access_token: token,
         tipo: 'admin',
         usuario: {
-          id: admin.id_admin,
+          id: admin.id,
           telefono: admin.telefono,
           nombre: admin.nombre,
-          apellido: admin.apellido,
           rol: admin.rol,
         },
       };
@@ -179,11 +175,8 @@ export class AuthService {
     if (!usuario) {
       throw new UnauthorizedException('Credenciales incorrectas');
     }
-    if (usuario.estado.toLowerCase() !== 'activo') {
-      throw new UnauthorizedException('Cuenta desactivada');
-    }
     if (!usuario.verificado) {
-      throw new UnauthorizedException('Cuenta no verificada. Revisa tu código SMS.');
+      throw new UnauthorizedException('Cuenta no verificado. Revisa tu código SMS.');
     }
 
     const pinValido = await bcrypt.compare(pin, usuario.pin_hash);
@@ -193,12 +186,12 @@ export class AuthService {
 
     // Actualizar último acceso
     await this.prisma.usuario.update({
-      where: { id_usuario: usuario.id_usuario },
-      data: { ultimo_acceso: new Date() },
+      where: { id: usuario.id },
+      data: { ultima_conexion: new Date() },
     });
 
     const payload = {
-      sub: usuario.id_usuario,
+      sub: usuario.id,
       telefono: usuario.telefono,
       tipo: 'usuario',
     };
@@ -208,12 +201,10 @@ export class AuthService {
       access_token: token,
       tipo: 'usuario',
       usuario: {
-        id: usuario.id_usuario,
+        id: usuario.id,
         telefono: usuario.telefono,
         nombre: usuario.nombre,
-        apellido: usuario.apellido,
-        foto_perfil_url: usuario.foto_perfil_url,
-        puntos_acumulados: usuario.puntos_acumulados,
+        avatar_url: usuario.avatar_url,
       },
     };
   }

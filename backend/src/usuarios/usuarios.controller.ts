@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Put, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Put, Req, UseGuards } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { AuthGuard } from '../auth/auth.guard';
 
@@ -17,18 +17,13 @@ export class UsuariosController {
     return this.usuarios.actualizarPerfil(req.user.sub, data);
   }
 
-  @Get('me/redes')
-  redes(@Req() req: any) {
-    return this.usuarios.listarRedesSociales(req.user.sub);
+  @Get('me/red-social')
+  getRedSocial(@Req() req: any) {
+    return this.usuarios.getRedSocial(req.user.sub);
   }
 
-  @Post('me/redes')
-  agregarRed(@Req() req: any, @Body() data: any) {
-    return this.usuarios.agregarRedSocial(req.user.sub, data);
-  }
-
-  @Delete('me/redes/:id')
-  eliminarRed(@Req() req: any, @Param('id') id: string) {
-    return this.usuarios.eliminarRedSocial(req.user.sub, +id);
+  @Put('me/red-social')
+  upsertRedSocial(@Req() req: any, @Body() data: any) {
+    return this.usuarios.upsertRedSocial(req.user.sub, data);
   }
 }

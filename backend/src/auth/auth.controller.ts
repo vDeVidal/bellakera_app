@@ -38,12 +38,11 @@ export class AuthController {
 
     if (tipo === 'admin') {
       const admin = await this.prisma.administrador.findUnique({
-        where: { id_admin: sub },
+        where: { id: sub },
         select: {
-          id_admin: true,
+          id: true,
           telefono: true,
           nombre: true,
-          apellido: true,
           rol: true,
           activo: true,
         },
@@ -52,15 +51,12 @@ export class AuthController {
     }
 
     const usuario = await this.prisma.usuario.findUnique({
-      where: { id_usuario: sub },
+      where: { id: sub },
       select: {
-        id_usuario: true,
+        id: true,
         telefono: true,
         nombre: true,
-        apellido: true,
-        foto_perfil_url: true,
-        puntos_acumulados: true,
-        estado: true,
+        avatar_url: true,
         verificado: true,
       },
     });

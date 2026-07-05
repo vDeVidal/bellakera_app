@@ -9,15 +9,15 @@ export class GaleriaService {
 
   async listarFeed(idUsuarioActual: number | null) {
     const items = await this.prisma.galeria.findMany({
-      where: { visible: true, estado_moderacion: 'aprobado' },
-      orderBy: { fecha_subida: 'desc' },
+      where: { aprobado: true },
+      orderBy: { fecha: 'desc' },
       include: {
         usuario: {
-          select: { id_usuario: true, nombre: true, apellido: true, foto_perfil_url: true },
+          select: { id: true, nombre: true, avatar_url: true },
         },
-        evento: { select: { id_evento: true, nombre: true } },
+        evento: { select: { id: true, nombre: true } },
         likes: idUsuarioActual
-          ? { where: { id_usuario: idUsuarioActual }, select: { id_like: true } }
+          ? { where: { usuario_id: idUsuarioActual }, select: { id: true } }
           : false,
       },
     });
@@ -30,54 +30,45 @@ export class GaleriaService {
     }));
   }
 
-  async crear(idUsuario: number, url: string, descripcion?: string, idEvento?: number) {
+  async crear(idUsuario: number, imagen_url: string, descripcion?: string, idEvento?: number) {
     return this.prisma.galeria.create({
       data: {
-        id_usuario: idUsuario,
-        url,
+        usuario_id: idUsuario,
+        imagen_url,
         descripcion,
-        id_evento: idEvento ?? null,
-        tipo: 'imagen',
+        evento_id: idEvento ?? null,
       },
     });
   }
 
-  async toggleLike(idMedia: number, idUsuario: number) {
+  async toggleLike(idGaleria: number, idUsuario: number) {
     const existente = await this.prisma.likeGaleria.findUnique({
-      where: { id_media_id_usuario: { id_media: idMedia, id_usuario: idUsuario } },
+      where: { usuario_id_galeria_id: { usuario_id: idUsuario, galeria_id: idGaleria } },
     });
 
     if (existente) {
-      await this.prisma.likeGaleria.delete({ where: { id_like: existente.id_like } });
-      await this.prisma.galeria.update({
-        where: { id_media: idMedia },
-        data: { likes_count: { decrement: 1 } },
-      });
+      await this.prisma.likeGaleria.delete({ where: { id: existente.id } });
       return { liked: false };
     } else {
       await this.prisma.likeGaleria.create({
-        data: { id_media: idMedia, id_usuario: idUsuario },
-      });
-      await this.prisma.galeria.update({
-        where: { id_media: idMedia },
-        data: { likes_count: { increment: 1 } },
+        data: { galeria_id: idGaleria, usuario_id: idUsuario },
       });
       return { liked: true };
     }
   }
 
-  async eliminar(idMedia: number, user: { sub: number; tipo: string }) {
-    const media = await this.prisma.galeria.findUnique({ where: { id_media: idMedia } });
+  async eliminar(idGaleria: number, user: { sub: number; tipo: string }) {
+    const media = await this.prisma.galeria.findUnique({ where: { id: idGaleria } });
     if (!media) throw new NotFoundException('Imagen no encontrada');
 
-    const esDueño = user.tipo === 'usuario' && media.id_usuario === user.sub;
+    const esDueño = user.tipo === 'usuario' && media.usuario_id === user.sub;
     const esAdmin = user.tipo === 'admin';
     if (!esDueño && !esAdmin) {
       throw new ForbiddenException('No tienes permiso para eliminar esta imagen');
     }
 
-    this.borrarArchivo(media.url);
-    await this.prisma.galeria.delete({ where: { id_media: idMedia } });
+    this.borrarArchivo(media.imagen_url);
+    await this.prisma.galeria.delete({ where: { id: idGaleria } });
     return { mensaje: 'Imagen eliminada' };
   }
 

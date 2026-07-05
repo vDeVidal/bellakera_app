@@ -59,6 +59,7 @@ bellakera_admin     | ➜  Local: http://localhost:5173/
 ```bash
 docker exec -it bellakera_backend npx prisma migrate deploy
 docker exec -it bellakera_backend npx prisma generate
+docker exec -it bellakera_backend npx prisma db seed
 ```
 
 ## 🌐 URLs disponibles

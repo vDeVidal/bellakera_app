@@ -10,21 +10,13 @@ export class EventosService {
 
   async listar() {
     return this.prisma.evento.findMany({
-      orderBy: { fecha_evento: 'desc' },
-      include: {
-        admin_creador: {
-          select: { nombre: true, apellido: true },
-        },
-      },
+      orderBy: { fecha: 'desc' },
     });
   }
 
   async obtener(id: number) {
     const evento = await this.prisma.evento.findUnique({
-      where: { id_evento: id },
-      include: {
-        admin_creador: { select: { nombre: true, apellido: true } },
-      },
+      where: { id },
     });
     if (!evento) throw new NotFoundException('Evento no encontrado');
     return evento;
@@ -35,42 +27,45 @@ export class EventosService {
       data: {
         nombre: data.nombre,
         descripcion: data.descripcion,
-        fecha_evento: new Date(data.fecha_evento),
-        estado: data.estado ?? 'proximo',
-        flyer_url: flyerPath,
-        id_admin_creador: idAdmin,
+        fecha: new Date(data.fecha),
+        precio: data.precio,
+        aforo_maximo: data.aforo_maximo,
+        estado: data.estado ?? 'ACTIVO',
+        imagen_url: flyerPath,
       },
     });
   }
 
   async actualizar(id: number, data: UpdateEventoDto, flyerPath: string | null) {
-    const existente = await this.prisma.evento.findUnique({ where: { id_evento: id } });
+    const existente = await this.prisma.evento.findUnique({ where: { id } });
     if (!existente) throw new NotFoundException('Evento no encontrado');
 
     // Si llega un flyer nuevo, borramos el anterior del filesystem
-    if (flyerPath && existente.flyer_url) {
-      this.borrarArchivo(existente.flyer_url);
+    if (flyerPath && existente.imagen_url) {
+      this.borrarArchivo(existente.imagen_url);
     }
 
     return this.prisma.evento.update({
-      where: { id_evento: id },
+      where: { id },
       data: {
         ...(data.nombre !== undefined && { nombre: data.nombre }),
         ...(data.descripcion !== undefined && { descripcion: data.descripcion }),
-        ...(data.fecha_evento !== undefined && { fecha_evento: new Date(data.fecha_evento) }),
+        ...(data.fecha !== undefined && { fecha: new Date(data.fecha) }),
+        ...(data.precio !== undefined && { precio: data.precio }),
+        ...(data.aforo_maximo !== undefined && { aforo_maximo: data.aforo_maximo }),
         ...(data.estado !== undefined && { estado: data.estado }),
-        ...(flyerPath && { flyer_url: flyerPath }),
+        ...(flyerPath && { imagen_url: flyerPath }),
       },
     });
   }
 
   async eliminar(id: number) {
-    const evento = await this.prisma.evento.findUnique({ where: { id_evento: id } });
+    const evento = await this.prisma.evento.findUnique({ where: { id } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
 
-    if (evento.flyer_url) this.borrarArchivo(evento.flyer_url);
+    if (evento.imagen_url) this.borrarArchivo(evento.imagen_url);
 
-    await this.prisma.evento.delete({ where: { id_evento: id } });
+    await this.prisma.evento.delete({ where: { id } });
     return { mensaje: 'Evento eliminado' };
   }
 

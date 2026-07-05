@@ -1,4 +1,5 @@
-import { IsString, IsOptional, IsDateString, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsDateString, MaxLength, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateEventoDto {
   @IsString()
@@ -10,11 +11,21 @@ export class CreateEventoDto {
   descripcion?: string;
 
   @IsDateString()
-  fecha_evento: string;
+  fecha: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  precio: number;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  aforo_maximo: number;
 
   @IsOptional()
   @IsString()
-  estado?: string; // proximo | en_curso | finalizado
+  estado?: string;
 }
 
 export class UpdateEventoDto {
@@ -25,7 +36,19 @@ export class UpdateEventoDto {
   descripcion?: string;
 
   @IsOptional() @IsDateString()
-  fecha_evento?: string;
+  fecha?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  precio?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  aforo_maximo?: number;
 
   @IsOptional() @IsString()
   estado?: string;

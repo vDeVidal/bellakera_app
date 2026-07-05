@@ -1,419 +1,299 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Iniciando seed de BELLAKERA...\n');
+  console.log('🌱 Iniciando seed...');
 
-  // ============================================
-  // 1. LIMPIAR DATOS EXISTENTES (orden importante por FK)
-  // ============================================
-  console.log('🧹 Limpiando base de datos...');
-  await prisma.participacion.deleteMany();
-  await prisma.dinamica.deleteMany();
-  await prisma.likeGaleria.deleteMany();
-  await prisma.galeria.deleteMany();
-  await prisma.venta.deleteMany();
-  await prisma.producto.deleteMany();
-  await prisma.evento.deleteMany();
-  await prisma.redSocial.deleteMany();
-  await prisma.usuario.deleteMany();
-  await prisma.administrador.deleteMany();
-  console.log('✅ Base de datos limpia\n');
-
-  // ============================================
-  // 2. ADMINISTRADORES
-  // ============================================
-  console.log('👨‍💼 Creando administradores...');
+  // ============================================================
+  // 1. ADMINISTRADORES
+  // ============================================================
   const pinAdminHash = await bcrypt.hash('1234', 10);
 
-  const adminSuper = await prisma.administrador.create({
-    data: {
-      telefono: '+56900000001',
+  const adminPrincipal = await prisma.administrador.upsert({
+    where: { telefono: '999999999' },
+    update: {},
+    create: {
+      telefono: '999999999',
+      nombre: 'Admin Principal',
       pin_hash: pinAdminHash,
-      nombre: 'Super',
-      apellido: 'Admin',
       rol: 'SUPER_ADMIN',
       activo: true,
     },
   });
 
-  const adminCaja = await prisma.administrador.create({
-    data: {
-      telefono: '+56900000002',
+  const adminBar = await prisma.administrador.upsert({
+    where: { telefono: '888888888' },
+    update: {},
+    create: {
+      telefono: '888888888',
+      nombre: 'Admin Bar',
       pin_hash: pinAdminHash,
-      nombre: 'María',
-      apellido: 'Cajera',
-      rol: 'CAJA',
+      rol: 'BAR',
       activo: true,
     },
   });
 
-  const adminPuerta = await prisma.administrador.create({
-    data: {
-      telefono: '+56900000003',
-      pin_hash: pinAdminHash,
-      nombre: 'Carlos',
-      apellido: 'Puerta',
-      rol: 'PUERTA',
-      activo: true,
-    },
-  });
+  console.log('✅ Administradores creados');
 
-  console.log(`✅ ${3} administradores creados\n`);
-
-  // ============================================
-  // 3. USUARIOS
-  // ============================================
-  console.log('👥 Creando usuarios...');
+  // ============================================================
+  // 2. USUARIOS
+  // ============================================================
   const pinUsuarioHash = await bcrypt.hash('0000', 10);
 
-  const usuario1 = await prisma.usuario.create({
-    data: {
-      telefono: '+56911111111',
+  const usuario1 = await prisma.usuario.upsert({
+    where: { telefono: '600000001' },
+    update: {},
+    create: {
+      telefono: '600000001',
+      nombre: 'Juan Pérez',
       pin_hash: pinUsuarioHash,
-      nombre: 'Javiera',
-      apellido: 'González',
-      fecha_nacimiento: new Date('2000-05-15'),
-      estado: 'ACTIVO',
       verificado: true,
-      puntos_acumulados: 150,
-      redes_sociales: {
-        create: [
-          { plataforma: 'INSTAGRAM', username: 'javi_glez', url: 'https://instagram.com/javi_glez' },
-          { plataforma: 'TIKTOK', username: '@javiglez', url: 'https://tiktok.com/@javiglez' },
-        ],
-      },
     },
   });
 
-  const usuario2 = await prisma.usuario.create({
-    data: {
-      telefono: '+56922222222',
+  const usuario2 = await prisma.usuario.upsert({
+    where: { telefono: '600000002' },
+    update: {},
+    create: {
+      telefono: '600000002',
+      nombre: 'María García',
       pin_hash: pinUsuarioHash,
-      nombre: 'Diego',
-      apellido: 'Muñoz',
-      fecha_nacimiento: new Date('1998-08-22'),
-      estado: 'ACTIVO',
       verificado: true,
-      puntos_acumulados: 80,
-      redes_sociales: {
-        create: [
-          { plataforma: 'INSTAGRAM', username: 'diegomuz', url: 'https://instagram.com/diegomuz' },
-        ],
-      },
     },
   });
 
-  const usuario3 = await prisma.usuario.create({
-    data: {
-      telefono: '+56933333333',
+  const usuario3 = await prisma.usuario.upsert({
+    where: { telefono: '600000003' },
+    update: {},
+    create: {
+      telefono: '600000003',
+      nombre: 'Carlos López',
       pin_hash: pinUsuarioHash,
-      nombre: 'Camila',
-      apellido: 'Rojas',
-      fecha_nacimiento: new Date('2001-11-03'),
-      estado: 'ACTIVO',
       verificado: true,
-      puntos_acumulados: 320,
     },
   });
 
-  const usuario4 = await prisma.usuario.create({
-    data: {
-      telefono: '+56944444444',
-      pin_hash: pinUsuarioHash,
-      nombre: 'Sebastián',
-      apellido: 'Pérez',
-      estado: 'ACTIVO',
-      verificado: false,
-      codigo_verificacion: '4321',
-      codigo_expira: new Date(Date.now() + 10 * 60 * 1000),
-      puntos_acumulados: 0,
-    },
-  });
+  console.log('✅ Usuarios creados');
 
-  console.log(`✅ 4 usuarios creados\n`);
-
-  // ============================================
-  // 4. EVENTOS
-  // ============================================
-  console.log('🎉 Creando eventos...');
-
+  // ============================================================
+  // 3. EVENTOS
+  // ============================================================
   const evento1 = await prisma.evento.create({
     data: {
-      nombre: 'BELLAKERA NIGHT - Reggaeton Edition',
-      descripcion: 'La noche más bellaka del año. DJs invitados, premios y sorpresas.',
-      flyer_url: 'https://placehold.co/600x800/ff006e/ffffff?text=BELLAKERA+NIGHT',
-      fecha_evento: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // en 7 días
-      estado: 'ACTIVO',
-      id_admin_creador: adminSuper.id_admin,
+      nombre: 'Bellakera Night - Reggaeton Party',
+      descripcion: 'La mejor noche de reggaeton con los mejores DJs de la ciudad.',
+      fecha: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +7 días
+      precio: 15.0,
+      imagen_url: null,
+      estado: 'activo',
+      aforo_maximo: 300,
+      fecha_cierre: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000),
     },
   });
 
   const evento2 = await prisma.evento.create({
     data: {
-      nombre: 'Halloween Bellako',
-      descripcion: 'Ven disfrazado y participa por premios. Música electrónica toda la noche.',
-      flyer_url: 'https://placehold.co/600x800/8338ec/ffffff?text=HALLOWEEN',
-      fecha_evento: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // en 30 días
-      estado: 'ACTIVO',
-      id_admin_creador: adminSuper.id_admin,
+      nombre: 'Latin Vibes',
+      descripcion: 'Ritmos latinos toda la noche.',
+      fecha: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+      precio: 20.0,
+      imagen_url: null,
+      estado: 'activo',
+      aforo_maximo: 250,
+      fecha_cierre: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
     },
   });
 
-  const evento3 = await prisma.evento.create({
+  console.log('✅ Eventos creados');
+
+  // ============================================================
+  // 4. PRODUCTOS
+  // ============================================================
+  const cerveza = await prisma.producto.create({
     data: {
-      nombre: 'Fiesta Aniversario',
-      descripcion: 'Celebramos un año más con música, premios y mucho perreo.',
-      flyer_url: 'https://placehold.co/600x800/3a86ff/ffffff?text=ANIVERSARIO',
-      fecha_evento: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // hace 30 días (pasado)
-      estado: 'FINALIZADO',
-      id_admin_creador: adminSuper.id_admin,
+      nombre: 'Cerveza',
+      descripcion: 'Cerveza nacional 33cl',
+      precio: 4.0,
+      stock: 200,
+      disponible: true,
     },
   });
 
-  console.log(`✅ 3 eventos creados\n`);
+  const cubata = await prisma.producto.create({
+    data: {
+      nombre: 'Cubata',
+      descripcion: 'Combinado premium',
+      precio: 8.0,
+      stock: 150,
+      disponible: true,
+    },
+  });
 
-  // ============================================
-  // 5. PRODUCTOS (bebidas, snacks)
-  // ============================================
-  console.log('🍻 Creando productos...');
+  const chupito = await prisma.producto.create({
+    data: {
+      nombre: 'Chupito',
+      descripcion: 'Chupito variado',
+      precio: 3.0,
+      stock: 300,
+      disponible: true,
+    },
+  });
 
-  const productos = await Promise.all([
-    prisma.producto.create({
-      data: { nombre: 'Cerveza Heineken', precio: 4500, stock_actual: 200, disponible: true },
-    }),
-    prisma.producto.create({
-      data: { nombre: 'Cerveza Corona', precio: 5000, stock_actual: 150, disponible: true },
-    }),
-    prisma.producto.create({
-      data: { nombre: 'Piscola individual', precio: 6000, stock_actual: 300, disponible: true },
-    }),
-    prisma.producto.create({
-      data: { nombre: 'Jarra de Piscola', precio: 18000, stock_actual: 80, disponible: true },
-    }),
-    prisma.producto.create({
-      data: { nombre: 'Vodka tonic', precio: 7000, stock_actual: 100, disponible: true },
-    }),
-    prisma.producto.create({
-      data: { nombre: 'Tequila shot', precio: 5500, stock_actual: 120, disponible: true },
-    }),
-    prisma.producto.create({
-      data: { nombre: 'Red Bull', precio: 4000, stock_actual: 200, disponible: true },
-    }),
-    prisma.producto.create({
-      data: { nombre: 'Agua mineral', precio: 2000, stock_actual: 250, disponible: true },
-    }),
-    prisma.producto.create({
-      data: { nombre: 'Papas fritas', precio: 3500, stock_actual: 100, disponible: true },
-    }),
-    prisma.producto.create({
-      data: { nombre: 'Botella Premium Vodka', precio: 80000, stock_actual: 20, disponible: true },
-    }),
-  ]);
+  const aguaMineral = await prisma.producto.create({
+    data: {
+      nombre: 'Agua Mineral',
+      descripcion: 'Agua mineral 50cl',
+      precio: 2.0,
+      stock: 100,
+      disponible: true,
+    },
+  });
 
-  console.log(`✅ ${productos.length} productos creados\n`);
+  console.log('✅ Productos creados');
 
-  // ============================================
-  // 6. VENTAS (algunas de ejemplo)
-  // ============================================
-  console.log('💰 Creando ventas de ejemplo...');
-
+  // ============================================================
+  // 5. VENTAS DE ENTRADAS (con QR)
+  // ============================================================
   await prisma.venta.create({
     data: {
-      id_usuario: usuario1.id_usuario,
       tipo_venta: 'ENTRADA',
-      total: 15000,
-      estado_pago: 'PAGADO',
-      id_evento: evento1.id_evento,
+      estado: 'pagado',
+      total: 15.0,
+      metodo_pago: 'tarjeta',
+      qr_code: randomUUID(),
+      qr_escaneado: false,
+      usuario: { connect: { id: usuario1.id } },
+      evento: { connect: { id: evento1.id } },
+      detalles: {
+        create: [
+          {
+            nombre_snapshot: 'Entrada Bellakera Night',
+            cantidad: 1,
+            precio_unitario: 15.0,
+            subtotal: 15.0,
+            estado: 'entregado',
+          },
+        ],
+      },
     },
   });
 
   await prisma.venta.create({
     data: {
-      id_usuario: usuario2.id_usuario,
       tipo_venta: 'ENTRADA',
-      total: 15000,
-      estado_pago: 'PAGADO',
-      id_evento: evento1.id_evento,
+      estado: 'pagado',
+      total: 30.0,
+      metodo_pago: 'tarjeta',
+      qr_code: randomUUID(),
+      qr_escaneado: true,
+      usuario: { connect: { id: usuario2.id } },
+      evento: { connect: { id: evento1.id } },
+      admin: { connect: { id: adminPrincipal.id } },
+      detalles: {
+        create: [
+          {
+            nombre_snapshot: 'Entrada Bellakera Night',
+            cantidad: 2,
+            precio_unitario: 15.0,
+            subtotal: 30.0,
+            estado: 'entregado',
+          },
+        ],
+      },
+    },
+  });
+
+  console.log('✅ Ventas de entradas creadas');
+
+  // ============================================================
+  // 6. VENTAS DE BEBIDAS (cola de bar)
+  // ============================================================
+  await prisma.venta.create({
+    data: {
+      tipo_venta: 'BEBIDA',
+      estado: 'preparando',
+      total: 12.0,
+      metodo_pago: 'app',
+      usuario: { connect: { id: usuario1.id } },
+      evento: { connect: { id: evento1.id } },
+      detalles: {
+        create: [
+          {
+            nombre_snapshot: 'Cerveza',
+            cantidad: 2,
+            precio_unitario: 4.0,
+            subtotal: 8.0,
+            estado: 'pendiente',
+            producto: { connect: { id: cerveza.id } },
+          },
+          {
+            nombre_snapshot: 'Agua Mineral',
+            cantidad: 2,
+            precio_unitario: 2.0,
+            subtotal: 4.0,
+            estado: 'pendiente',
+            producto: { connect: { id: aguaMineral.id } },
+          },
+        ],
+      },
     },
   });
 
   await prisma.venta.create({
     data: {
-      id_usuario: usuario3.id_usuario,
       tipo_venta: 'BEBIDA',
-      total: 11500,
-      estado_pago: 'PAGADO',
-      id_evento: evento1.id_evento,
+      estado: 'listo',
+      total: 8.0,
+      metodo_pago: 'app',
+      usuario: { connect: { id: usuario2.id } },
+      evento: { connect: { id: evento1.id } },
+      admin: { connect: { id: adminBar.id } },
+      detalles: {
+        create: [
+          {
+            nombre_snapshot: 'Cubata',
+            cantidad: 1,
+            precio_unitario: 8.0,
+            subtotal: 8.0,
+            estado: 'listo',
+            producto: { connect: { id: cubata.id } },
+          },
+        ],
+      },
     },
   });
 
   await prisma.venta.create({
     data: {
-      id_usuario: usuario1.id_usuario,
       tipo_venta: 'BEBIDA',
-      total: 18000,
-      estado_pago: 'PENDIENTE',
+      estado: 'entregado',
+      total: 6.0,
+      metodo_pago: 'app',
+      fecha_entrega: new Date(),
+      usuario: { connect: { id: usuario3.id } },
+      evento: { connect: { id: evento1.id } },
+      admin: { connect: { id: adminBar.id } },
+      detalles: {
+        create: [
+          {
+            nombre_snapshot: 'Chupito',
+            cantidad: 2,
+            precio_unitario: 3.0,
+            subtotal: 6.0,
+            estado: 'entregado',
+            producto: { connect: { id: chupito.id } },
+          },
+        ],
+      },
     },
   });
 
-  console.log(`✅ 4 ventas creadas\n`);
+  console.log('✅ Ventas de bebidas creadas');
 
-  // ============================================
-  // 7. GALERÍA (fotos/videos)
-  // ============================================
-  console.log('📸 Creando galería...');
-
-  const media1 = await prisma.galeria.create({
-    data: {
-      id_usuario: usuario1.id_usuario,
-      id_evento: evento3.id_evento,
-      tipo: 'FOTO',
-      url: 'https://placehold.co/800x800/ff006e/ffffff?text=Foto+1',
-      thumbnail_url: 'https://placehold.co/200x200/ff006e/ffffff?text=Foto+1',
-      descripcion: 'La mejor noche bellaka 🔥',
-      estado_moderacion: 'APROBADO',
-      visible: true,
-      likes_count: 2,
-    },
-  });
-
-  const media2 = await prisma.galeria.create({
-    data: {
-      id_usuario: usuario2.id_usuario,
-      id_evento: evento3.id_evento,
-      tipo: 'FOTO',
-      url: 'https://placehold.co/800x800/8338ec/ffffff?text=Foto+2',
-      thumbnail_url: 'https://placehold.co/200x200/8338ec/ffffff?text=Foto+2',
-      descripcion: 'Equipo completo 💃🕺',
-      estado_moderacion: 'APROBADO',
-      visible: true,
-      likes_count: 1,
-    },
-  });
-
-  const media3 = await prisma.galeria.create({
-    data: {
-      id_usuario: usuario3.id_usuario,
-      tipo: 'VIDEO',
-      url: 'https://placehold.co/800x800/3a86ff/ffffff?text=Video',
-      thumbnail_url: 'https://placehold.co/200x200/3a86ff/ffffff?text=Video',
-      descripcion: 'Mira este perreo intenso 🎶',
-      estado_moderacion: 'PENDIENTE',
-      visible: false,
-      likes_count: 0,
-    },
-  });
-
-  console.log(`✅ 3 publicaciones en galería\n`);
-
-  // ============================================
-  // 8. LIKES en galería
-  // ============================================
-  console.log('❤️ Creando likes...');
-
-  await prisma.likeGaleria.create({
-    data: { id_media: media1.id_media, id_usuario: usuario2.id_usuario },
-  });
-  await prisma.likeGaleria.create({
-    data: { id_media: media1.id_media, id_usuario: usuario3.id_usuario },
-  });
-  await prisma.likeGaleria.create({
-    data: { id_media: media2.id_media, id_usuario: usuario1.id_usuario },
-  });
-
-  console.log(`✅ 3 likes creados\n`);
-
-  // ============================================
-  // 9. DINÁMICAS / JUEGOS
-  // ============================================
-  console.log('🎮 Creando dinámicas...');
-
-  const dinamica1 = await prisma.dinamica.create({
-    data: {
-      nombre: 'El Más Bellako de la Noche',
-      descripcion: 'Vota por quien tenga el mejor outfit bellako.',
-      tipo: 'VOTACION',
-      reglas: 'Cada usuario puede votar 1 vez. Gana el más votado.',
-      imagen_url: 'https://placehold.co/600x400/ff006e/ffffff?text=Mas+Bellako',
-      fecha_inicio: new Date(),
-      fecha_fin: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      estado: 'ACTIVO',
-      premio: '1 botella de Vodka Premium',
-    },
-  });
-
-  const dinamica2 = await prisma.dinamica.create({
-    data: {
-      nombre: 'Reto del Baile',
-      descripcion: 'Sube un video bailando el tema que está sonando.',
-      tipo: 'RETO',
-      reglas: 'Sube tu video desde la app. Los más likes ganan.',
-      imagen_url: 'https://placehold.co/600x400/8338ec/ffffff?text=Reto+Baile',
-      fecha_inicio: new Date(),
-      fecha_fin: new Date(Date.now() + 3 * 60 * 60 * 1000),
-      estado: 'ACTIVO',
-      premio: '2 entradas para el próximo evento',
-    },
-  });
-
-  const dinamica3 = await prisma.dinamica.create({
-    data: {
-      nombre: 'Trivia Reggaetonera',
-      descripcion: 'Responde preguntas sobre reggaeton y gana puntos.',
-      tipo: 'TRIVIA',
-      reglas: '10 preguntas. Gana quien más acierte en menor tiempo.',
-      imagen_url: 'https://placehold.co/600x400/3a86ff/ffffff?text=Trivia',
-      fecha_inicio: new Date(Date.now() + 60 * 60 * 1000),
-      estado: 'PROGRAMADA',
-      premio: '50.000 CLP en consumo',
-    },
-  });
-
-  console.log(`✅ 3 dinámicas creadas\n`);
-
-  // ============================================
-  // 10. PARTICIPACIONES en dinámicas
-  // ============================================
-  console.log('🏆 Creando participaciones...');
-
-  await prisma.participacion.create({
-    data: { id_dinamica: dinamica1.id_dinamica, id_usuario: usuario1.id_usuario, puntaje: 50 },
-  });
-  await prisma.participacion.create({
-    data: { id_dinamica: dinamica1.id_dinamica, id_usuario: usuario2.id_usuario, puntaje: 30 },
-  });
-  await prisma.participacion.create({
-    data: { id_dinamica: dinamica1.id_dinamica, id_usuario: usuario3.id_usuario, puntaje: 80 },
-  });
-  await prisma.participacion.create({
-    data: { id_dinamica: dinamica2.id_dinamica, id_usuario: usuario1.id_usuario, puntaje: 100 },
-  });
-  await prisma.participacion.create({
-    data: { id_dinamica: dinamica2.id_dinamica, id_usuario: usuario3.id_usuario, puntaje: 75 },
-  });
-
-  console.log(`✅ 5 participaciones creadas\n`);
-
-  // ============================================
-  // RESUMEN FINAL
-  // ============================================
-  console.log('═══════════════════════════════════════');
-  console.log('🎉 SEED COMPLETADO CON ÉXITO 🎉');
-  console.log('═══════════════════════════════════════');
-  console.log('\n📋 CREDENCIALES DE PRUEBA:\n');
-  console.log('👨‍💼 ADMINISTRADORES (PIN: 1234)');
-  console.log('   • SUPER ADMIN  → +56900000001');
-  console.log('   • CAJA         → +56900000002');
-  console.log('   • PUERTA       → +56900000003');
-  console.log('\n👥 USUARIOS (PIN: 0000)');
-  console.log('   • Javiera     → +56911111111  (verificado)');
-  console.log('   • Diego       → +56922222222  (verificado)');
-  console.log('   • Camila      → +56933333333  (verificado)');
-  console.log('   • Sebastián   → +56944444444  (NO verificado, código: 4321)');
-  console.log('\n═══════════════════════════════════════\n');
+  console.log('🎉 Seed completado con éxito');
 }
 
 main()
