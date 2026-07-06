@@ -15,12 +15,17 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select } from "@/components/ui/select"
 
+// 1️⃣ Cambia el schema: quita coerce (ya no lo necesitas)
 const eventoSchema = z.object({
     nombre: z.string().min(3, "Mínimo 3 caracteres"),
     descripcion: z.string().optional(),
     fecha: z.string().min(1, "Fecha requerida"),
-    precio: z.coerce.number().min(0, "Precio inválido"),
-    aforo_maximo: z.coerce.number().int().min(1, "Aforo mínimo 1"),
+    precio: z.number({ invalid_type_error: "Precio requerido" })
+        .int("Debe ser un entero")
+        .min(1, "El precio debe ser mayor a 0"),
+    aforo_maximo: z.number({ invalid_type_error: "Aforo requerido" })
+        .int()
+        .min(1, "Aforo mínimo 1"),
     estado: z.enum(["ACTIVO", "CERRADO", "CANCELADO"]),
 })
 
@@ -52,8 +57,8 @@ export function EventoFormPage() {
             nombre: "",
             descripcion: "",
             fecha: "",
-            precio: 0,
-            aforo_maximo: 100,
+            precio: undefined as any,        // que arranque vacío, no 0
+            aforo_maximo: undefined as any,
             estado: "ACTIVO",
         },
     })
@@ -69,7 +74,7 @@ export function EventoFormPage() {
                 estado: evento.estado,
             })
             if (evento.imagen_url) {
-                setFlyerPreview(buildImageUrl(evento.imagen_url))
+                setFlyerPreview(buildImageUrl(evento.imagen_url) || null)
             }
         }
     }, [evento, reset])
@@ -122,7 +127,7 @@ export function EventoFormPage() {
 
     const clearFlyer = () => {
         setFlyer(null)
-        setFlyerPreview(evento?.imagen_url ? buildImageUrl(evento.imagen_url) : null)
+        setFlyerPreview(evento?.imagen_url ? buildImageUrl(evento.imagen_url) || null : null)
     }
 
     if (isEdit && isLoading) {
@@ -225,10 +230,12 @@ export function EventoFormPage() {
                             <Input
                                 id="precio"
                                 type="number"
-                                step="100"
-                                {...register("precio")}
+                                step="500"
+                                min={1}
+                                {...register("precio", { valueAsNumber: true })}    // ← clave
                                 placeholder="10000"
                             />
+
                             {errors.precio && (
                                 <p className="text-xs text-destructive">{errors.precio.message}</p>
                             )}
@@ -238,7 +245,9 @@ export function EventoFormPage() {
                             <Input
                                 id="aforo_maximo"
                                 type="number"
-                                {...register("aforo_maximo")}
+                                step="50"
+                                min={1}
+                                {...register("aforo_maximo", { valueAsNumber: true })}   // ← clave
                                 placeholder="300"
                             />
                             {errors.aforo_maximo && (

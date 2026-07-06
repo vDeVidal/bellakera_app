@@ -13,10 +13,10 @@ async function main() {
   const pinAdminHash = await bcrypt.hash('1234', 10);
 
   const adminPrincipal = await prisma.administrador.upsert({
-    where: { telefono: '999999999' },
+    where: { telefono: '+56999999999' },
     update: {},
     create: {
-      telefono: '999999999',
+      telefono: '+56999999999',
       nombre: 'Admin Principal',
       pin_hash: pinAdminHash,
       rol: 'SUPER_ADMIN',
@@ -25,10 +25,10 @@ async function main() {
   });
 
   const adminBar = await prisma.administrador.upsert({
-    where: { telefono: '888888888' },
+    where: { telefono: '+56988888888' },
     update: {},
     create: {
-      telefono: '888888888',
+      telefono: '+56988888888',
       nombre: 'Admin Bar',
       pin_hash: pinAdminHash,
       rol: 'BAR',
@@ -44,10 +44,10 @@ async function main() {
   const pinUsuarioHash = await bcrypt.hash('0000', 10);
 
   const usuario1 = await prisma.usuario.upsert({
-    where: { telefono: '600000001' },
+    where: { telefono: '+56960000001' },
     update: {},
     create: {
-      telefono: '600000001',
+      telefono: '+56960000001',
       nombre: 'Juan Pérez',
       pin_hash: pinUsuarioHash,
       verificado: true,
@@ -55,10 +55,10 @@ async function main() {
   });
 
   const usuario2 = await prisma.usuario.upsert({
-    where: { telefono: '600000002' },
+    where: { telefono: '+56960000002' },
     update: {},
     create: {
-      telefono: '600000002',
+      telefono: '+56960000002',
       nombre: 'María García',
       pin_hash: pinUsuarioHash,
       verificado: true,
@@ -66,10 +66,10 @@ async function main() {
   });
 
   const usuario3 = await prisma.usuario.upsert({
-    where: { telefono: '600000003' },
+    where: { telefono: '+56960000003' },
     update: {},
     create: {
-      telefono: '600000003',
+      telefono: '+56960000003',
       nombre: 'Carlos López',
       pin_hash: pinUsuarioHash,
       verificado: true,
@@ -79,16 +79,16 @@ async function main() {
   console.log('✅ Usuarios creados');
 
   // ============================================================
-  // 3. EVENTOS
+  // 3. EVENTOS  (precio como Int puro - CLP)
   // ============================================================
   const evento1 = await prisma.evento.create({
     data: {
       nombre: 'Bellakera Night - Reggaeton Party',
       descripcion: 'La mejor noche de reggaeton con los mejores DJs de la ciudad.',
-      fecha: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +7 días
-      precio: 15.0,
+      fecha: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      precio: 15000,           // ← INT puro (CLP)
       imagen_url: null,
-      estado: 'activo',
+      estado: 'ACTIVO',        // ← mayúsculas consistentes
       aforo_maximo: 300,
       fecha_cierre: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000),
     },
@@ -99,9 +99,9 @@ async function main() {
       nombre: 'Latin Vibes',
       descripcion: 'Ritmos latinos toda la noche.',
       fecha: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-      precio: 20.0,
+      precio: 20000,
       imagen_url: null,
-      estado: 'activo',
+      estado: 'ACTIVO',
       aforo_maximo: 250,
       fecha_cierre: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
     },
@@ -110,13 +110,13 @@ async function main() {
   console.log('✅ Eventos creados');
 
   // ============================================================
-  // 4. PRODUCTOS
+  // 4. PRODUCTOS  (precio como Int puro - CLP)
   // ============================================================
   const cerveza = await prisma.producto.create({
     data: {
       nombre: 'Cerveza',
       descripcion: 'Cerveza nacional 33cl',
-      precio: 4.0,
+      precio: 3000,
       stock: 200,
       disponible: true,
     },
@@ -126,7 +126,7 @@ async function main() {
     data: {
       nombre: 'Cubata',
       descripcion: 'Combinado premium',
-      precio: 8.0,
+      precio: 6000,
       stock: 150,
       disponible: true,
     },
@@ -136,7 +136,7 @@ async function main() {
     data: {
       nombre: 'Chupito',
       descripcion: 'Chupito variado',
-      precio: 3.0,
+      precio: 2500,
       stock: 300,
       disponible: true,
     },
@@ -146,7 +146,7 @@ async function main() {
     data: {
       nombre: 'Agua Mineral',
       descripcion: 'Agua mineral 50cl',
-      precio: 2.0,
+      precio: 1500,
       stock: 100,
       disponible: true,
     },
@@ -160,8 +160,8 @@ async function main() {
   await prisma.venta.create({
     data: {
       tipo_venta: 'ENTRADA',
-      estado: 'pagado',
-      total: 15.0,
+      estado: 'PAGADO',
+      total: 15000,
       metodo_pago: 'tarjeta',
       qr_code: randomUUID(),
       qr_escaneado: false,
@@ -172,9 +172,9 @@ async function main() {
           {
             nombre_snapshot: 'Entrada Bellakera Night',
             cantidad: 1,
-            precio_unitario: 15.0,
-            subtotal: 15.0,
-            estado: 'entregado',
+            precio_unitario: 15000,
+            subtotal: 15000,
+            estado: 'ENTREGADO',
           },
         ],
       },
@@ -184,8 +184,8 @@ async function main() {
   await prisma.venta.create({
     data: {
       tipo_venta: 'ENTRADA',
-      estado: 'pagado',
-      total: 30.0,
+      estado: 'PAGADO',
+      total: 30000,
       metodo_pago: 'tarjeta',
       qr_code: randomUUID(),
       qr_escaneado: true,
@@ -197,9 +197,9 @@ async function main() {
           {
             nombre_snapshot: 'Entrada Bellakera Night',
             cantidad: 2,
-            precio_unitario: 15.0,
-            subtotal: 30.0,
-            estado: 'entregado',
+            precio_unitario: 15000,
+            subtotal: 30000,
+            estado: 'ENTREGADO',
           },
         ],
       },
@@ -214,8 +214,8 @@ async function main() {
   await prisma.venta.create({
     data: {
       tipo_venta: 'BEBIDA',
-      estado: 'preparando',
-      total: 12.0,
+      estado: 'PREPARANDO',
+      total: 9000,
       metodo_pago: 'app',
       usuario: { connect: { id: usuario1.id } },
       evento: { connect: { id: evento1.id } },
@@ -224,17 +224,17 @@ async function main() {
           {
             nombre_snapshot: 'Cerveza',
             cantidad: 2,
-            precio_unitario: 4.0,
-            subtotal: 8.0,
-            estado: 'pendiente',
+            precio_unitario: 3000,
+            subtotal: 6000,
+            estado: 'PENDIENTE',
             producto: { connect: { id: cerveza.id } },
           },
           {
             nombre_snapshot: 'Agua Mineral',
             cantidad: 2,
-            precio_unitario: 2.0,
-            subtotal: 4.0,
-            estado: 'pendiente',
+            precio_unitario: 1500,
+            subtotal: 3000,
+            estado: 'PENDIENTE',
             producto: { connect: { id: aguaMineral.id } },
           },
         ],
@@ -245,8 +245,8 @@ async function main() {
   await prisma.venta.create({
     data: {
       tipo_venta: 'BEBIDA',
-      estado: 'listo',
-      total: 8.0,
+      estado: 'LISTO',
+      total: 6000,
       metodo_pago: 'app',
       usuario: { connect: { id: usuario2.id } },
       evento: { connect: { id: evento1.id } },
@@ -256,9 +256,9 @@ async function main() {
           {
             nombre_snapshot: 'Cubata',
             cantidad: 1,
-            precio_unitario: 8.0,
-            subtotal: 8.0,
-            estado: 'listo',
+            precio_unitario: 6000,
+            subtotal: 6000,
+            estado: 'LISTO',
             producto: { connect: { id: cubata.id } },
           },
         ],
@@ -269,8 +269,8 @@ async function main() {
   await prisma.venta.create({
     data: {
       tipo_venta: 'BEBIDA',
-      estado: 'entregado',
-      total: 6.0,
+      estado: 'ENTREGADO',
+      total: 5000,
       metodo_pago: 'app',
       fecha_entrega: new Date(),
       usuario: { connect: { id: usuario3.id } },
@@ -281,9 +281,9 @@ async function main() {
           {
             nombre_snapshot: 'Chupito',
             cantidad: 2,
-            precio_unitario: 3.0,
-            subtotal: 6.0,
-            estado: 'entregado',
+            precio_unitario: 2500,
+            subtotal: 5000,
+            estado: 'ENTREGADO',
             producto: { connect: { id: chupito.id } },
           },
         ],

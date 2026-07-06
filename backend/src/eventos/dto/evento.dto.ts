@@ -2,12 +2,10 @@ import { IsString, IsOptional, IsDateString, MaxLength, IsInt, Min } from 'class
 import { Type } from 'class-transformer';
 
 export class CreateEventoDto {
-  @IsString()
-  @MaxLength(200)
+  @IsString() @MaxLength(200)
   nombre: string;
 
-  @IsOptional()
-  @IsString()
+  @IsOptional() @IsString()
   descripcion?: string;
 
   @IsDateString()
@@ -15,16 +13,16 @@ export class CreateEventoDto {
 
   @Type(() => Number)
   @IsInt()
-  @Min(0)
+  @Min(1)                       // ← antes era 0
   precio: number;
 
+  @IsOptional()                 // ← lo hacemos opcional (schema lo permite null)
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  aforo_maximo: number;
+  aforo_maximo?: number;
 
-  @IsOptional()
-  @IsString()
+  @IsOptional() @IsString()
   estado?: string;
 }
 
@@ -41,7 +39,7 @@ export class UpdateEventoDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(0)
+  @Min(1)                       // ← antes era 0
   precio?: number;
 
   @IsOptional()

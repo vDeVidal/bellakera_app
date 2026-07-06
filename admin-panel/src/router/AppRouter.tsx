@@ -7,6 +7,7 @@ import { EventosPage } from "@/pages/eventos/EventosPage"
 import { EventoFormPage } from "@/pages/eventos/EventoFormPage"
 import { EventoDetallePage } from "@/pages/eventos/EventoDetallePage"
 import { ProductosPage } from "@/pages/ProductosPage"
+import { ProductoFormPage } from "@/pages/ProductoFormPage"
 import { ColaPage } from "@/pages/ColaPage"
 import { VentasPage } from "@/pages/VentasPage"
 
@@ -33,8 +34,10 @@ export function AppRouter() {
                     <Route path="/eventos/:id" element={<EventoDetallePage />} />
                     <Route path="/eventos/:id/editar" element={<EventoFormPage />} />
 
-                    {/* Otros módulos (placeholders por ahora) */}
+                    {/* Otros módulos */}
                     <Route path="/productos" element={<ProductosPage />} />
+                    <Route path="/productos/nuevo" element={<ProductoFormPage />} />
+                    <Route path="/productos/:id/editar" element={<ProductoFormPage />} />
                     <Route path="/cola" element={<ColaPage />} />
                     <Route path="/ventas" element={<VentasPage />} />
                 </Route>

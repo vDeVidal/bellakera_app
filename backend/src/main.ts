@@ -10,7 +10,6 @@ async function bootstrap() {
   app.enableCors({ origin: '*' });
   app.setGlobalPrefix('api');
 
-  // Validación global de DTOs
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -19,13 +18,19 @@ async function bootstrap() {
     }),
   );
 
-  // Servir archivos estáticos en /uploads/...
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  // 👇 process.cwd() = /app (donde está el package.json)
+  // Funciona tanto en start:dev como en start:prod
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads/',
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
   });
 
   await app.listen(3000, '0.0.0.0');
   console.log('🚀 Backend en http://localhost:3000/api');
   console.log('🖼️  Uploads en http://localhost:3000/uploads/...');
+  console.log(`📁 Sirviendo desde: ${join(process.cwd(), 'uploads')}`);
 }
 bootstrap();

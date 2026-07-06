@@ -4,12 +4,41 @@ import { CreateEventoDto, UpdateEventoDto } from './dto/evento.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Estados válidos (única fuente de verdad)
+const ESTADOS_VALIDOS = ['ACTIVO', 'CERRADO', 'CANCELADO'] as const;
+type EstadoEvento = typeof ESTADOS_VALIDOS[number];
+
 @Injectable()
 export class EventosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
-  async listar() {
+  /**
+   * Normaliza el estado a mayúsculas y valida que sea uno permitido.
+   * Retorna undefined si no viene, para poder usarlo en updates parciales.
+   */
+  private normalizarEstado(estado?: string): EstadoEvento | undefined {
+    if (!estado) return undefined;
+    const upper = estado.toUpperCase() as EstadoEvento;
+    if (!ESTADOS_VALIDOS.includes(upper)) {
+      throw new NotFoundException(
+        `Estado inválido: ${estado}. Debe ser uno de: ${ESTADOS_VALIDOS.join(', ')}`,
+      );
+    }
+    return upper;
+  }
+
+  async listar(filtros?: { estado?: string; search?: string }) {
+    const estado = this.normalizarEstado(filtros?.estado);
+
     return this.prisma.evento.findMany({
+      where: {
+        ...(estado && {
+          estado: { equals: estado, mode: 'insensitive' },
+        }),
+        ...(filtros?.search && {
+          nombre: { contains: filtros.search, mode: 'insensitive' },
+        }),
+      },
       orderBy: { fecha: 'desc' },
     });
   }
@@ -17,6 +46,11 @@ export class EventosService {
   async obtener(id: number) {
     const evento = await this.prisma.evento.findUnique({
       where: { id },
+      include: {
+        _count: {
+          select: { ventas: true },
+        },
+      },
     });
     if (!evento) throw new NotFoundException('Evento no encontrado');
     return evento;
@@ -28,9 +62,9 @@ export class EventosService {
         nombre: data.nombre,
         descripcion: data.descripcion,
         fecha: new Date(data.fecha),
-        precio: data.precio,
-        aforo_maximo: data.aforo_maximo,
-        estado: data.estado ?? 'ACTIVO',
+        precio: Number(data.precio),                 // fuerza a number
+        aforo_maximo: data.aforo_maximo ? Number(data.aforo_maximo) : null,
+        estado: this.normalizarEstado(data.estado) ?? 'ACTIVO',
         imagen_url: flyerPath,
       },
     });
@@ -38,6 +72,7 @@ export class EventosService {
 
   async actualizar(id: number, data: UpdateEventoDto, flyerPath: string | null) {
     const existente = await this.prisma.evento.findUnique({ where: { id } });
+    console.log('🔧 [Update Evento] id:', id, 'data recibida:', data);
     if (!existente) throw new NotFoundException('Evento no encontrado');
 
     // Si llega un flyer nuevo, borramos el anterior del filesystem
@@ -45,15 +80,19 @@ export class EventosService {
       this.borrarArchivo(existente.imagen_url);
     }
 
+    const estadoNormalizado = this.normalizarEstado(data.estado);
+
     return this.prisma.evento.update({
       where: { id },
       data: {
         ...(data.nombre !== undefined && { nombre: data.nombre }),
         ...(data.descripcion !== undefined && { descripcion: data.descripcion }),
         ...(data.fecha !== undefined && { fecha: new Date(data.fecha) }),
-        ...(data.precio !== undefined && { precio: data.precio }),
-        ...(data.aforo_maximo !== undefined && { aforo_maximo: data.aforo_maximo }),
-        ...(data.estado !== undefined && { estado: data.estado }),
+        ...(data.precio !== undefined && { precio: Number(data.precio) }),
+        ...(data.aforo_maximo !== undefined && {
+          aforo_maximo: data.aforo_maximo ? Number(data.aforo_maximo) : null,
+        }),
+        ...(estadoNormalizado !== undefined && { estado: estadoNormalizado }),
         ...(flyerPath && { imagen_url: flyerPath }),
       },
     });

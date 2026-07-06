@@ -22,12 +22,9 @@ export interface EventoInput {
     estado?: "ACTIVO" | "CERRADO" | "CANCELADO"
 }
 
+// (ReporteEvento se queda igual)
 export interface ReporteEvento {
-    evento: {
-        id: number
-        titulo: string
-        fecha: string
-    }
+    evento: { id: number; titulo: string; fecha: string }
     resumen: {
         totalVentas: number
         ingresosTotales: number
@@ -36,22 +33,30 @@ export interface ReporteEvento {
         entradasVendidas: number
         bebidasVendidas: number
     }
-    topProductos: Array<{
-        nombre: string
-        cantidad: number
-        ingresos: number
-    }>
-    ventasPorHora: Array<{
-        hora: number
-        cantidad: number
-        ingresos: number
-    }>
+    topProductos: Array<{ nombre: string; cantidad: number; ingresos: number }>
+    ventasPorHora: Array<{ hora: number; cantidad: number; ingresos: number }>
     ventasPorEstado: {
         pendiente: number
         preparando: number
         listo: number
         entregado: number
     }
+}
+
+/**
+ * Construye un FormData ignorando valores vacíos/NaN/undefined.
+ * Evita mandar "precio: ''" que en backend se convierte en 0.
+ */
+function buildFormData(input: Record<string, any>, flyer?: File): FormData {
+    const form = new FormData()
+    Object.entries(input).forEach(([k, v]) => {
+        if (v === undefined || v === null) return
+        if (typeof v === "string" && v.trim() === "") return
+        if (typeof v === "number" && Number.isNaN(v)) return
+        form.append(k, String(v))
+    })
+    if (flyer) form.append("flyer", flyer)
+    return form
 }
 
 export const eventosApi = {
@@ -66,26 +71,19 @@ export const eventosApi = {
     },
 
     create: async (input: EventoInput, flyer?: File): Promise<Evento> => {
-        const form = new FormData()
-        Object.entries(input).forEach(([k, v]) => {
-            if (v !== undefined && v !== null) form.append(k, String(v))
-        })
-        if (flyer) form.append("flyer", flyer)
-        const { data } = await apiClient.post<Evento>("/eventos", form, {
-            headers: { "Content-Type": "multipart/form-data" },
-        })
+        const form = buildFormData(input, flyer)
+        // ⚠️ NO seteamos Content-Type manualmente: axios lo hace con boundary
+        const { data } = await apiClient.post<Evento>("/eventos", form)
         return data
     },
 
-    update: async (id: number, input: Partial<EventoInput>, flyer?: File): Promise<Evento> => {
-        const form = new FormData()
-        Object.entries(input).forEach(([k, v]) => {
-            if (v !== undefined && v !== null) form.append(k, String(v))
-        })
-        if (flyer) form.append("flyer", flyer)
-        const { data } = await apiClient.patch<Evento>(`/eventos/${id}`, form, {
-            headers: { "Content-Type": "multipart/form-data" },
-        })
+    update: async (
+        id: number,
+        input: Partial<EventoInput>,
+        flyer?: File,
+    ): Promise<Evento> => {
+        const form = buildFormData(input, flyer)
+        const { data } = await apiClient.patch<Evento>(`/eventos/${id}`, form)
         return data
     },
 
