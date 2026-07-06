@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 // Pantallas usuario (carpeta main/)
 import EventosScreen from '../screens/main/EventosScreen';
 import EntradasScreen from '../screens/main/EntradasScreen';
+import MisPedidosScreen from '../screens/main/MisPedidosScreen';
 import JuegosScreen from '../screens/main/JuegosScreen';
 import GaleriaScreen from '../screens/main/GaleriaScreen';
 import PerfilScreen from '../screens/main/PerfilScreen';
@@ -38,12 +39,13 @@ export default function TabNavigator() {
         tabBarIcon: ({ color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap = 'help-circle';
 
-          if (route.name === 'Eventos') iconName = 'calendar-outline';
-          else if (route.name === 'Entradas') iconName = 'ticket-outline';
-          else if (route.name === 'Scanner') iconName = 'qr-code-outline';
-          else if (route.name === 'Juegos') iconName = 'game-controller-outline';
-          else if (route.name === 'Galería') iconName = 'images-outline';
-          else if (route.name === 'Perfil') iconName = 'person-outline';
+          if (route.name === 'Eventos')     iconName = 'calendar-outline';
+          else if (route.name === 'Entradas')   iconName = 'cart-outline';
+          else if (route.name === 'MisPedidos') iconName = 'receipt-outline';
+          else if (route.name === 'Scanner')    iconName = 'qr-code-outline';
+          else if (route.name === 'Juegos')     iconName = 'game-controller-outline';
+          else if (route.name === 'Galería')    iconName = 'images-outline';
+          else if (route.name === 'Perfil')     iconName = 'person-outline';
 
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -62,11 +64,18 @@ export default function TabNavigator() {
           options={{ title: 'Scanner QR' }}
         />
       ) : (
-        <Tab.Screen
-          name="Entradas"
-          component={EntradasScreen}
-          options={{ title: 'Ventas' }}
-        />
+        <>
+          <Tab.Screen
+            name="Entradas"
+            component={EntradasScreen}
+            options={{ title: 'Ventas' }}
+          />
+          <Tab.Screen
+            name="MisPedidos"
+            component={MisPedidosScreen}
+            options={{ title: 'Mis Pedidos' }}
+          />
+        </>
       )}
 
       <Tab.Screen name="Juegos" component={JuegosScreen} />

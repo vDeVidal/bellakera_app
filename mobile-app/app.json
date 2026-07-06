@@ -20,7 +20,15 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ff2d75",
+          "sounds": []
+        }
+      ]
     ],
     "extra": {
       "eas": {

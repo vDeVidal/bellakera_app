@@ -148,7 +148,7 @@ export function EventoFormPage() {
                 </h1>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
                 <div className="grid grid-cols-1 gap-6 rounded-lg border border-border bg-card p-6">
                     <div className="space-y-2">
                         <Label>Flyer</Label>
@@ -230,7 +230,7 @@ export function EventoFormPage() {
                             <Input
                                 id="precio"
                                 type="number"
-                                step="500"
+                                step="any"
                                 min={1}
                                 {...register("precio", { valueAsNumber: true })}    // ← clave
                                 placeholder="10000"
@@ -245,7 +245,7 @@ export function EventoFormPage() {
                             <Input
                                 id="aforo_maximo"
                                 type="number"
-                                step="50"
+                                step="any"
                                 min={1}
                                 {...register("aforo_maximo", { valueAsNumber: true })}   // ← clave
                                 placeholder="300"
