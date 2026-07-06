@@ -82,20 +82,30 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
   const login = async (telefono: string, pin: string) => {
     try {
-      const response = await apiClient.post('/auth/login', { telefono, pin });
-      const data = response.data;
+      const response = await apiClient.post('/auth/login', {
+        telefono,
+        pin
+      });
 
-      if (!data.access_token) {
-        throw new Error('No se recibió token del servidor');
+      console.log('📦 Respuesta cruda del Backend:', response.data);
+
+      const token = response.data?.access_token;
+      const usuarioData = response.data?.usuario;
+      const tipoCuenta = response.data?.tipo as TipoCuenta; // Extrae si es 'admin' o 'usuario'
+
+      if (!token) {
+        throw new Error('El backend no devolvió ningún token válido en la respuesta.');
       }
 
+      // 🎯 Usamos la función nativa que ya tenías escrita para setear todo el estado formalmente
       await guardarSesion({
-        access_token: data.access_token,
-        tipo: data.tipo,
-        usuario: data.usuario,
+        access_token: token,
+        tipo: tipoCuenta || 'usuario',
+        usuario: usuarioData
       });
+
     } catch (error: any) {
-      console.log('Error en login:', error?.response?.data || error.message);
+      console.error('Error en login contexto:', error);
       throw error;
     }
   };
@@ -143,9 +153,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   );
 };
 
-// ============================================
-// 🪝 HOOK PERSONALIZADO useAuth
-// ============================================
 export const useAuth = (): AuthContextProps => {
   const context = useContext(AuthContext);
   if (!context) {

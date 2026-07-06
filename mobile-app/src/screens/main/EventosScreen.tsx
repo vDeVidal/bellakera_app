@@ -12,13 +12,16 @@ import { useIsAdmin } from '../../hooks/useIsAdmin';
 const flyer1 = require('../../../assets/halloween_bellako.png');
 const flyer2 = require('../../../assets/bellakera_otro.png');
 
+// ✅ Interface actualizada con los campos reales del backend (Prisma)
 interface Evento {
-  id_evento: number;
+  id: number;          // antes: id_evento
   nombre: string;
-  descripcion?: string;
-  flyer_url?: string;
-  fecha_evento: string;
+  descripcion?: string | null;
+  imagen_url?: string | null;
+  fecha: string;       // antes: fecha_evento
+  precio: number;
   estado: string;
+  aforo_maximo?: number | null;
 }
 
 export default function EventosScreen() {
@@ -47,23 +50,23 @@ export default function EventosScreen() {
   }, [navigation, cargar]);
 
   const renderItem = ({ item }: { item: Evento }) => {
-    const fecha = new Date(item.fecha_evento);
+    const fecha = new Date(item.fecha);  // ✅ campo correcto
     const fechaTexto = fecha.toLocaleDateString('es-CL', {
       day: '2-digit', month: 'short', year: 'numeric',
     });
 
     // PARCHE: Alterna dinámicamente las imágenes locales según el id del evento
-    const imagenLocal = item.id_evento % 2 === 0 ? flyer1 : flyer2;
+    const imagenLocal = item.id % 2 === 0 ? flyer1 : flyer2;  // ✅ campo correcto
 
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('EventoDetalle', { id: item.id_evento })}
+        onPress={() => navigation.navigate('EventoDetalle', { id: item.id })}  // ✅
         activeOpacity={0.85}
       >
-        <Image 
-          source={imagenLocal} 
-          style={styles.flyer} 
+        <Image
+          source={imagenLocal}
+          style={styles.flyer}
           resizeMode="cover"
         />
         <View style={styles.info}>
@@ -72,8 +75,11 @@ export default function EventosScreen() {
           {item.descripcion ? (
             <Text style={styles.desc} numberOfLines={2}>{item.descripcion}</Text>
           ) : null}
-          <View style={styles.estadoBadge}>
-            <Text style={styles.estadoText}>{item.estado.toUpperCase()}</Text>
+          <View style={styles.row}>
+            <View style={styles.estadoBadge}>
+              <Text style={styles.estadoText}>{item.estado.toUpperCase()}</Text>
+            </View>
+            <Text style={styles.precio}>${item.precio.toLocaleString('es-CL')}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -92,7 +98,7 @@ export default function EventosScreen() {
     <View style={styles.container}>
       <FlatList
         data={eventos}
-        keyExtractor={(it) => it.id_evento.toString()}
+        keyExtractor={(it) => it.id.toString()}  // ✅ campo correcto
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         ListEmptyComponent={
@@ -130,11 +136,14 @@ const styles = StyleSheet.create({
   nombre: { color: '#fff', fontSize: 18, fontWeight: '700' },
   fecha: { color: '#ff2d75', fontSize: 13, marginTop: 2 },
   desc: { color: '#bbb', fontSize: 14, marginTop: 6 },
+  row: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10,
+  },
   estadoBadge: {
-    alignSelf: 'flex-start', marginTop: 10,
     backgroundColor: '#ff2d7522', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
   },
   estadoText: { color: '#ff2d75', fontSize: 11, fontWeight: '700', letterSpacing: 1 },
+  precio: { color: '#888', fontSize: 13, fontWeight: '600' },
   vacio: { color: '#666', textAlign: 'center', marginTop: 60 },
   fab: {
     position: 'absolute', right: 20, bottom: 24,

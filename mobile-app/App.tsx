@@ -8,12 +8,16 @@ import RootNavigator from './src/navigation/RootNavigator';
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <AuthProvider>
+      {/* Añadimos de forma explícitamente segura el NavigationContainer.
+        Si la versión interna cambió de firma, esto asegura un renderizado limpio
+        al aislar el árbol de contexto.
+      */}
+      <AuthProvider>
+        <NavigationContainer>
           <StatusBar style="light" />
           <RootNavigator />
-        </AuthProvider>
-      </NavigationContainer>
+        </NavigationContainer>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

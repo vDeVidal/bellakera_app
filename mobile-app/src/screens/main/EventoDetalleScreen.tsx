@@ -58,14 +58,14 @@ export default function EventoDetalleScreen() {
     );
   }
 
-  const fecha = new Date(evento.fecha_evento).toLocaleString('es-CL', {
+  const fecha = new Date(evento.fecha).toLocaleString('es-CL', {
     dateStyle: 'full', timeStyle: 'short',
   });
 
   return (
     <ScrollView style={styles.container}>
-      {evento.flyer_url && (
-        <Image source={{ uri: buildImageUrl(evento.flyer_url) }} style={styles.flyer} />
+      {evento.imagen_url && (
+        <Image source={{ uri: buildImageUrl(evento.imagen_url) }} style={styles.flyer} />
       )}
 
       <View style={styles.content}>
@@ -74,6 +74,10 @@ export default function EventoDetalleScreen() {
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{evento.estado.toUpperCase()}</Text>
         </View>
+
+        {evento.precio != null && (
+          <Text style={styles.precio}>Precio: ${Number(evento.precio).toLocaleString('es-CL')}</Text>
+        )}
 
         {evento.descripcion && (
           <Text style={styles.desc}>{evento.descripcion}</Text>
@@ -106,6 +110,7 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   nombre: { color: '#fff', fontSize: 26, fontWeight: '800' },
   fecha: { color: '#ff2d75', fontSize: 14, marginTop: 6 },
+  precio: { color: '#aaa', fontSize: 15, marginTop: 6, fontWeight: '600' },
   badge: {
     alignSelf: 'flex-start', marginTop: 10,
     backgroundColor: '#ff2d7522', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8,
