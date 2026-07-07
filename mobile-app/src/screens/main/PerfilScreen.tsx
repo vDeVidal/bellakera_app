@@ -46,8 +46,9 @@ export default function PerfilScreen() {
     try {
       const { data } = await api.get<RedSocial[]>('/usuarios/me/redes');
       setRedes(data);
-    } catch (e) {
-      console.log('Error redes:', e);
+    } catch {
+      // El endpoint de redes sociales no está disponible aún — se ignora silenciosamente
+      setRedes([]);
     }
   };
 
@@ -98,8 +99,15 @@ export default function PerfilScreen() {
       });
       setNuevoUsername('');
       cargarRedes();
-    } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.message || 'No se pudo agregar');
+    } catch {
+      // Endpoint no disponible — guardar solo localmente
+      const nueva: RedSocial = {
+        id_red: Date.now(),
+        plataforma: nuevaPlataforma,
+        username: nuevoUsername.trim(),
+      };
+      setRedes((prev) => [...prev, nueva]);
+      setNuevoUsername('');
     }
   };
 
@@ -108,8 +116,9 @@ export default function PerfilScreen() {
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Eliminar', style: 'destructive', onPress: async () => {
-          await api.delete(`/usuarios/me/redes/${id}`);
-          cargarRedes();
+          // Eliminar localmente primero
+          setRedes((prev) => prev.filter((r) => r.id_red !== id));
+          try { await api.delete(`/usuarios/me/redes/${id}`); } catch { /* silenciado */ }
         },
       },
     ]);

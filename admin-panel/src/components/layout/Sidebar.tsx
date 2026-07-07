@@ -6,6 +6,7 @@ import {
     ShoppingCart,
     ClipboardList,
     Flame,
+    Gamepad2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +16,7 @@ const links = [
     { to: '/productos', label: 'Productos', icon: Beer },
     { to: '/cola', label: 'Cola de pedidos', icon: ClipboardList },
     { to: '/ventas', label: 'Ventas', icon: ShoppingCart },
+    { to: '/minijuegos', label: 'Minijuegos', icon: Gamepad2 },
 ];
 
 export function Sidebar() {

@@ -1,106 +1,151 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator,
+  View, Text, StyleSheet, TouchableOpacity, Animated, Easing,
+  PanResponder, Dimensions, ActivityIndicator, Modal,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { api } from '../../api/client';
 import { colors } from '../../theme/colors';
 
-interface Dinamica {
-  id_dinamica: number;
-  nombre: string;
-  descripcion?: string;
-  estado: string;
-  premio?: string;
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+
+const FRUTAS = ['🍓', '🍉', '🍌', '🍇', '🍒', '🥝', '🍑', '🍍', '🍋', '🫐'];
+const BASKET_W = 90;
+const FRUIT_SIZE = 40;
+const GAME_DURATION = 30; // segundos
+
+interface FrutaCayendo {
+  id: number;
+  emoji: string;
+  x: number;
+  anim: Animated.Value;
 }
 
+// ─── Pantalla principal de Juegos ─────────────────────────────────────────────
+
 export default function JuegosScreen() {
-  const [dinamicas, setDinamicas] = useState<Dinamica[]>([]);
+  const navigation = useNavigation<any>();
+  const [juegoActivo, setJuegoActivo] = useState(false);
   const [cargando, setCargando] = useState(true);
+  const pulso = useRef(new Animated.Value(1)).current;
+
+  const checkEstadoJuego = useCallback(async () => {
+    try {
+      const { data } = await api.get('/config/juego');
+      setJuegoActivo(data.juego_activo);
+    } catch {
+      // silencioso
+    } finally {
+      setCargando(false);
+    }
+  }, []);
 
   useEffect(() => {
-    api.get<Dinamica[]>('/dinamicas')
-      .then((res) => setDinamicas(res.data))
-      .catch((e) => console.log('Error dinámicas:', e))
-      .finally(() => setCargando(false));
-  }, []);
+    checkEstadoJuego();
+    const interval = setInterval(checkEstadoJuego, 5000);
+    return () => clearInterval(interval);
+  }, [checkEstadoJuego]);
+
+  // Animación de pulso cuando el juego está activo
+  useEffect(() => {
+    if (!juegoActivo) {
+      pulso.setValue(1);
+      return;
+    }
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulso, { toValue: 1.08, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulso, { toValue: 1, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [juegoActivo]);
 
   if (cargando) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color="#ff2d75" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Juegos BELLAKOS</Text>
+      <Text style={styles.titulo}>Juegos BELLAKOS 🎮</Text>
 
-      {dinamicas.length === 0 ? (
-        <View style={styles.proxima}>
-          <Text style={styles.proximaTitulo}>Próxima dinámica</Text>
-          <Text style={styles.proximaSubtitulo}>BELLAKERA pronto</Text>
-        </View>
-      ) : null}
-
-      <Text style={styles.subtitulo}>Juegos Bellakos para pasar el rato</Text>
-
-      <View style={styles.numerosContainer}>
-        {[1, 2, 3].map((n) => (
-          <TouchableOpacity key={n} style={styles.numeroBtn}>
-            <Text style={styles.numeroText}>{n}</Text>
-          </TouchableOpacity>
-        ))}
+      {/* Botón principal del juego */}
+      <View style={styles.juegoSection}>
+        {juegoActivo ? (
+          <>
+            <View style={styles.activoBadge}>
+              <View style={styles.activoPulse} />
+              <Text style={styles.activoText}>¡Juego ACTIVADO por el Admin!</Text>
+            </View>
+            <Animated.View style={{ transform: [{ scale: pulso }] }}>
+              <TouchableOpacity
+                style={styles.btnJuego}
+                onPress={() => navigation.navigate('FruitCatcher')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.btnJuegoEmoji}>🍓</Text>
+                <Text style={styles.btnJuegoTitle}>FRUIT CATCHER</Text>
+                <Text style={styles.btnJuegoSub}>¡Atrapa todas las frutas!</Text>
+                <View style={styles.btnJuegoArrow}>
+                  <Ionicons name="play-circle" size={28} color="#fff" />
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
+          </>
+        ) : (
+          <View style={styles.juegoInactivo}>
+            <Text style={styles.juegoInactivoEmoji}>🎮</Text>
+            <Text style={styles.juegoInactivoTitle}>Próximo juego</Text>
+            <Text style={styles.juegoInactivoSub}>El staff activará un juego en vivo durante el evento</Text>
+          </View>
+        )}
       </View>
 
-      <FlatList
-        data={dinamicas}
-        keyExtractor={(item) => item.id_dinamica.toString()}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No hay dinámicas activas en este momento</Text>
-        }
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
-            <Text style={styles.cardNombre}>{item.nombre}</Text>
-            {item.descripcion && <Text style={styles.cardDesc}>{item.descripcion}</Text>}
-            {item.premio && (
-              <View style={styles.premio}>
-                <Text style={styles.premioText}>🏆 {item.premio}</Text>
-              </View>
-            )}
-            <Text style={styles.cardEstado}>{item.estado.toUpperCase()}</Text>
-          </TouchableOpacity>
-        )}
-      />
+      <Text style={styles.subtitulo}>Más juegos próximamente…</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 16 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
-  titulo: { fontSize: 24, fontWeight: 'bold', color: colors.primary, marginBottom: 20 },
-  proxima: {
-    backgroundColor: colors.card, padding: 30, borderRadius: 12,
-    alignItems: 'center', marginBottom: 30, borderWidth: 1, borderColor: colors.border,
+  container: { flex: 1, backgroundColor: '#0a0a0a', padding: 20 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0a0a0a' },
+  titulo: { fontSize: 24, fontWeight: 'bold', color: '#ff2d75', marginBottom: 24, letterSpacing: 0.5 },
+
+  juegoSection: { marginBottom: 30 },
+
+  activoBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14,
+    backgroundColor: '#1a0010', paddingHorizontal: 12, paddingVertical: 8,
+    borderRadius: 20, alignSelf: 'flex-start',
+    borderWidth: 1, borderColor: '#ff2d7544',
   },
-  proximaTitulo: { color: colors.text, fontSize: 22, fontWeight: 'bold' },
-  proximaSubtitulo: { color: colors.text, fontSize: 22, fontWeight: 'bold' },
-  subtitulo: { color: colors.text, fontSize: 16, marginBottom: 16, textAlign: 'center' },
-  numerosContainer: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 30 },
-  numeroBtn: {
-    width: 80, height: 80, backgroundColor: colors.primary, borderRadius: 12,
-    justifyContent: 'center', alignItems: 'center',
+  activoPulse: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ff2d75' },
+  activoText: { color: '#ff2d75', fontWeight: '700', fontSize: 13 },
+
+  btnJuego: {
+    backgroundColor: '#1a0a0a', borderRadius: 20, padding: 24,
+    alignItems: 'center', gap: 8,
+    borderWidth: 2, borderColor: '#ff2d75',
+    shadowColor: '#ff2d75', shadowOpacity: 0.5, shadowRadius: 16, elevation: 8,
   },
-  numeroText: { color: '#fff', fontSize: 36, fontWeight: 'bold' },
-  card: {
-    backgroundColor: colors.card, padding: 16, borderRadius: 12, marginBottom: 12,
-    borderWidth: 1, borderColor: colors.border,
+  btnJuegoEmoji: { fontSize: 56 },
+  btnJuegoTitle: { color: '#fff', fontSize: 22, fontWeight: '900', letterSpacing: 2 },
+  btnJuegoSub: { color: '#888', fontSize: 14 },
+  btnJuegoArrow: { marginTop: 8 },
+
+  juegoInactivo: {
+    backgroundColor: '#111', borderRadius: 20, padding: 40, alignItems: 'center', gap: 8,
+    borderWidth: 1, borderColor: '#1f1f1f',
   },
-  cardNombre: { color: colors.text, fontSize: 18, fontWeight: 'bold', marginBottom: 6 },
-  cardDesc: { color: colors.textMuted, fontSize: 14, marginBottom: 8 },
-  premio: { backgroundColor: colors.backgroundLight, padding: 8, borderRadius: 6, marginBottom: 8 },
-  premioText: { color: colors.accent, fontSize: 14 },
-  cardEstado: { color: colors.primary, fontSize: 12, fontWeight: 'bold' },
-  emptyText: { color: colors.textMuted, textAlign: 'center', marginTop: 20 },
+  juegoInactivoEmoji: { fontSize: 56, opacity: 0.4 },
+  juegoInactivoTitle: { color: '#444', fontSize: 18, fontWeight: '700' },
+  juegoInactivoSub: { color: '#333', fontSize: 13, textAlign: 'center' },
+
+  subtitulo: { color: '#333', textAlign: 'center', fontSize: 14 },
 });

@@ -19,14 +19,17 @@ export class GaleriaService {
         likes: idUsuarioActual
           ? { where: { usuario_id: idUsuarioActual }, select: { id: true } }
           : false,
+        _count: { select: { likes: true } },
       },
     });
 
     // Añadir bandera "liked_by_me"
     return items.map((it: any) => ({
       ...it,
+      likes_count: it._count?.likes ?? 0,
       liked_by_me: Array.isArray(it.likes) && it.likes.length > 0,
       likes: undefined,
+      _count: undefined,
     }));
   }
 

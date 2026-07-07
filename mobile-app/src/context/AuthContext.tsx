@@ -16,6 +16,7 @@ export interface Usuario {
   fecha_nacimiento?: string;
   estado?: string;
   verificado?: boolean;
+  foto_perfil_url?: string;   // campo del backend para foto de perfil
   rol?: RolAdmin; // Solo presente para admins
 }
 

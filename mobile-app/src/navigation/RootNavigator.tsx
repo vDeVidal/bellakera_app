@@ -16,6 +16,8 @@ import AdminTabNavigator from './AdminTabNavigator'; // Requerimos crear este pa
 // Pantallas Compartidas o Modales
 import EventoDetalleScreen from '../screens/main/EventoDetalleScreen';
 import EventoFormScreen from '../screens/main/EventoFormScreen';
+import TarjetaScreen from '../screens/main/TarjetaScreen';
+import FruitCatcherScreen from '../screens/main/FruitCatcherScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -62,6 +64,21 @@ export default function RootNavigator() {
               headerStyle: { backgroundColor: '#0a0a0a' },
               headerTintColor: '#fff',
             }}
+          />
+          <Stack.Screen
+            name="Tarjeta"
+            component={TarjetaScreen}
+            options={{
+              headerShown: true,
+              title: 'Mi Tarjeta',
+              headerStyle: { backgroundColor: '#0a0a0a' },
+              headerTintColor: '#fff',
+            }}
+          />
+          <Stack.Screen
+            name="FruitCatcher"
+            component={FruitCatcherScreen}
+            options={{ headerShown: false }}
           />
         </>
       ) : (

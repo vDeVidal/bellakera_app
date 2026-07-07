@@ -11,6 +11,7 @@ import { DinamicasModule } from './dinamicas/dinamicas.module';
 import { SmsModule } from './sms/sms.module';
 import { ProductosModule } from './productos/productos.module';
 import { VentasModule } from './ventas/ventas.module';
+import { AppConfigModule } from './config/config.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { VentasModule } from './ventas/ventas.module';
     SmsModule,
     ProductosModule,
     VentasModule,
+    AppConfigModule,
   ],
 })
 export class AppModule { }

@@ -25,7 +25,7 @@ export default function EventoFormScreen({ route, navigation }: any) {
   // --- ESTADOS DEL FORMULARIO ---
   const [nombre, setNombre] = useState(esEdicion ? evento.nombre : '');
   const [descripcion, setDescripcion] = useState(esEdicion ? evento.descripcion : '');
-  const [estado, setEstado] = useState(esEdicion ? evento.estado : 'proximo');
+  const [estado, setEstado] = useState(esEdicion ? (evento.estado || 'ACTIVO').toUpperCase() : 'ACTIVO');
   const [fotoUrl, setFotoUrl] = useState(esEdicion ? evento.foto_url : null);
   
   const [fechaObjeto, setFechaObjeto] = useState<Date>(
@@ -223,7 +223,7 @@ export default function EventoFormScreen({ route, navigation }: any) {
 
       <Text style={styles.label}>Estado</Text>
       <View style={styles.estadoRow}>
-        {['proximo', 'en_curso', 'finalizado'].map((item) => (
+        {['ACTIVO', 'CERRADO', 'CANCELADO'].map((item) => (
           <TouchableOpacity
             key={item}
             style={[
@@ -233,7 +233,7 @@ export default function EventoFormScreen({ route, navigation }: any) {
             onPress={() => setEstado(item)}
           >
             <Text style={[styles.estadoButtonText, estado === item && styles.estadoButtonTextActive]}>
-              {item.replace('_', ' ')}
+              {item === 'ACTIVO' ? 'ACTIVO' : item === 'CERRADO' ? 'CERRADO' : 'CANCELADO'}
             </Text>
           </TouchableOpacity>
         ))}

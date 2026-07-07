@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { apiClient } from '../../api/client';
 import { ventasApi } from '../../api/ventas';
 import { useAuth } from '../../context/AuthContext';
@@ -49,6 +50,9 @@ export default function EntradasScreen() {
   const [cargando, setCargando] = useState(true);
   const [enviando, setEnviando] = useState(false);
 
+  // Tarjeta guardada
+  const [tarjeta, setTarjeta] = useState<{ numero: string; nombre: string; tipo: string } | null>(null);
+
   // Modal de confirmación
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -57,15 +61,17 @@ export default function EntradasScreen() {
   const cargarDatos = useCallback(async () => {
     setCargando(true);
     try {
-      const [{ data: evData }, { data: prodData }] = await Promise.all([
+      const [{ data: evData }, { data: prodData }, tarjetaRaw] = await Promise.all([
         apiClient.get<Evento[]>('/eventos'),
         apiClient.get<Producto[]>('/productos?disponibles=true'),
+        AsyncStorage.getItem('tarjeta_guardada'),
       ]);
 
       const activos = evData.filter((e) => e.estado === 'ACTIVO');
       setEventos(activos);
       if (activos.length > 0) setEventoActivo(activos[0]);
       setProductos(prodData);
+      if (tarjetaRaw) setTarjeta(JSON.parse(tarjetaRaw));
     } catch {
       Alert.alert('Error', 'No se pudieron cargar los datos. Verifica tu conexión.');
     } finally {
@@ -115,18 +121,24 @@ export default function EntradasScreen() {
       Alert.alert('Carrito vacío', 'Agrega al menos un ítem antes de confirmar.');
       return;
     }
+    // Si no hay tarjeta, ir a agregarla primero
+    if (!tarjeta) {
+      setModalVisible(false);
+      navigation.navigate('Tarjeta', { onVolver: () => {} });
+      return;
+    }
     setModalVisible(false);
     setEnviando(true);
 
     try {
+      const metodoPago = tarjeta ? 'TARJETA' : 'EFECTIVO';
       if (tab === 'entradas') {
-        // Compra de entrada
         const cantidad = carrito[eventoActivo.id] || 1;
         await ventasApi.crear({
           evento_id: eventoActivo.id,
           tipo_venta: 'ENTRADA',
           items: [{ cantidad }],
-          metodo_pago: 'app',
+          metodo_pago: metodoPago,
         });
         limpiarCarrito();
         Alert.alert(
@@ -135,7 +147,6 @@ export default function EntradasScreen() {
           [{ text: 'Ver Mis Pedidos', onPress: () => navigation.navigate('MisPedidos') }],
         );
       } else {
-        // Pedido de barra
         const items = Object.entries(carrito)
           .filter(([, cant]) => cant > 0)
           .map(([id, cantidad]) => ({ producto_id: Number(id), cantidad }));
@@ -144,7 +155,7 @@ export default function EntradasScreen() {
           evento_id: eventoActivo.id,
           tipo_venta: 'BEBIDA',
           items,
-          metodo_pago: 'app',
+          metodo_pago: metodoPago,
         });
         limpiarCarrito();
         Alert.alert(

@@ -23,7 +23,7 @@ export class VentasController {
     // Crear venta (usuario autenticado)
     @Post()
     create(@Req() req: any, @Body() dto: CreateVentaDto) {
-        return this.ventasService.create(req.user.id, dto);
+        return this.ventasService.create(req.user.sub, dto);
     }
 
     // Listar ventas (solo admin)
@@ -47,7 +47,7 @@ export class VentasController {
     // Mis ventas (usuario autenticado)
     @Get('mis-ventas')
     getMisVentas(@Req() req: any) {
-        return this.ventasService.getMisVentas(req.user.id);
+        return this.ventasService.getMisVentas(req.user.sub);
     }
 
     // Reporte de evento (solo admin)

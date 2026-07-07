@@ -10,6 +10,7 @@ import { ProductosPage } from "@/pages/ProductosPage"
 import { ProductoFormPage } from "@/pages/ProductoFormPage"
 import { ColaPage } from "@/pages/ColaPage"
 import { VentasPage } from "@/pages/VentasPage"
+import { MinijuegosPage } from "@/pages/MinijuegosPage"
 
 export function AppRouter() {
     return (
@@ -40,6 +41,7 @@ export function AppRouter() {
                     <Route path="/productos/:id/editar" element={<ProductoFormPage />} />
                     <Route path="/cola" element={<ColaPage />} />
                     <Route path="/ventas" element={<VentasPage />} />
+                    <Route path="/minijuegos" element={<MinijuegosPage />} />
                 </Route>
 
                 {/* Redirección raíz */}

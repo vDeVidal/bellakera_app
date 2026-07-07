@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { api } from '../../api/client';
+import { api, buildImageUrl } from '../../api/client';
 import { useIsAdmin } from '../../hooks/useIsAdmin';
 
 // IMPORTACIÓN DE ASSETS LOCALES PARA EL PARCHE DEL VIDEO
@@ -55,8 +55,10 @@ export default function EventosScreen() {
       day: '2-digit', month: 'short', year: 'numeric',
     });
 
-    // PARCHE: Alterna dinámicamente las imágenes locales según el id del evento
-    const imagenLocal = item.id % 2 === 0 ? flyer1 : flyer2;  // ✅ campo correcto
+    // Si el evento tiene imagen del backend la usamos, si no, alternamos localmente
+    const flyerSource = item.imagen_url 
+      ? { uri: buildImageUrl(item.imagen_url) } 
+      : (item.id % 2 === 0 ? flyer1 : flyer2);
 
     return (
       <TouchableOpacity
@@ -65,7 +67,7 @@ export default function EventosScreen() {
         activeOpacity={0.85}
       >
         <Image
-          source={imagenLocal}
+          source={flyerSource}
           style={styles.flyer}
           resizeMode="cover"
         />
