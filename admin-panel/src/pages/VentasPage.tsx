@@ -120,9 +120,13 @@ export function VentasPage() {
     const updateEstadoMutation = useMutation({
         mutationFn: ({ id, estado }: { id: number; estado: string }) =>
             ventasApi.updateEstado(id, estado),
-        onSuccess: () => {
+        onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ["ventas-historial"] })
             queryClient.invalidateQueries({ queryKey: ["venta-detalle", detalleId] })
+            // Al cancelar una venta se restaura stock de bebidas
+            if (variables.estado === 'cancelado') {
+                queryClient.invalidateQueries({ queryKey: ["productos"] })
+            }
             toast.success("Estado de venta actualizado")
         },
         onError: (e: any) => {
@@ -136,6 +140,8 @@ export function VentasPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["ventas-historial"] })
             queryClient.invalidateQueries({ queryKey: ["venta-detalle", detalleId] })
+            // Restaurar stock al cancelar
+            queryClient.invalidateQueries({ queryKey: ["productos"] })
             toast.success("Venta cancelada exitosamente")
             setCancelarId(null)
         },

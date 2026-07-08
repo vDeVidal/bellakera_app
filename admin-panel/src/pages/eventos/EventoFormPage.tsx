@@ -81,8 +81,8 @@ export function EventoFormPage() {
 
     const crearMutation = useMutation({
         mutationFn: (data: EventoInput) => eventosApi.create(data, flyer ?? undefined),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["eventos"] })
+        onSuccess: async () => {
+            await queryClient.refetchQueries({ queryKey: ["eventos"] })
             toast.success("Evento creado")
             navigate("/eventos")
         },
@@ -94,9 +94,9 @@ export function EventoFormPage() {
     const actualizarMutation = useMutation({
         mutationFn: (data: Partial<EventoInput>) =>
             eventosApi.update(Number(id), data, flyer ?? undefined),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["eventos"] })
-            queryClient.invalidateQueries({ queryKey: ["evento", id] })
+        onSuccess: async () => {
+            await queryClient.refetchQueries({ queryKey: ["eventos"] })
+            queryClient.removeQueries({ queryKey: ["evento", id] })
             toast.success("Evento actualizado")
             navigate("/eventos")
         },

@@ -104,7 +104,30 @@ export class EventosService {
 
     if (evento.imagen_url) this.borrarArchivo(evento.imagen_url);
 
-    await this.prisma.evento.delete({ where: { id } });
+    // Eliminar en cascada: primero los detalles, luego las ventas, luego el evento
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Obtener IDs de ventas del evento
+      const ventas = await tx.venta.findMany({
+        where: { evento_id: id },
+        select: { id: true },
+      });
+      const ventaIds = ventas.map((v) => v.id);
+
+      // 2. Eliminar detalles de esas ventas
+      if (ventaIds.length > 0) {
+        await tx.detalleVenta.deleteMany({ where: { venta_id: { in: ventaIds } } });
+      }
+
+      // 3. Eliminar las ventas
+      await tx.venta.deleteMany({ where: { evento_id: id } });
+
+      // 4. Eliminar cualquier galería del evento
+      await tx.galeria.deleteMany({ where: { evento_id: id } });
+
+      // 5. Finalmente eliminar el evento
+      await tx.evento.delete({ where: { id } });
+    });
+
     return { mensaje: 'Evento eliminado' };
   }
 

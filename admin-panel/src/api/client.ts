@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = (import.meta as any).env.VITE_API_URL || '';
 
 export const api = axios.create({
     baseURL: `${API_URL}/api`,
@@ -30,6 +30,8 @@ api.interceptors.response.use(
 export const buildImageUrl = (path?: string | null): string | undefined => {
     if (!path) return undefined;
     if (path.startsWith('http')) return path;
+    // Ruta relativa (/uploads/...) → el proxy de Vite la redirige al backend
+    if (path.startsWith('/')) return path;
     return `${API_URL}${path}`;
 };
 

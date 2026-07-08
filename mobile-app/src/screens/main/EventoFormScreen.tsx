@@ -24,9 +24,11 @@ export default function EventoFormScreen({ route, navigation }: any) {
 
   // --- ESTADOS DEL FORMULARIO ---
   const [nombre, setNombre] = useState(esEdicion ? evento.nombre : '');
-  const [descripcion, setDescripcion] = useState(esEdicion ? evento.descripcion : '');
+  const [descripcion, setDescripcion] = useState(esEdicion ? evento.descripcion ?? '' : '');
   const [estado, setEstado] = useState(esEdicion ? (evento.estado || 'ACTIVO').toUpperCase() : 'ACTIVO');
-  const [fotoUrl, setFotoUrl] = useState(esEdicion ? evento.foto_url : null);
+  const [precio, setPrecio] = useState(esEdicion ? String(evento.precio ?? '') : '');
+  const [aforo, setAforo] = useState(esEdicion ? String(evento.aforo_maximo ?? '') : '');
+  const [fotoUrl, setFotoUrl] = useState(esEdicion ? (evento.imagen_url ?? null) : null);
   
   const [fechaObjeto, setFechaObjeto] = useState<Date>(
     esEdicion && evento?.fecha ? new Date(evento.fecha) : new Date()
@@ -94,11 +96,12 @@ export default function EventoFormScreen({ route, navigation }: any) {
       const fechaISO = fechaObjeto.toISOString();
 
       const formData = new FormData();
-      formData.append('nombre', nombre);
-      formData.append('descripcion', descripcion);
-      formData.append('fecha_evento', fechaISO);
+      formData.append('nombre', nombre.trim());
+      if (descripcion.trim()) formData.append('descripcion', descripcion.trim());
+      formData.append('fecha', fechaISO);           // ← 'fecha' (no 'fecha_evento')
       formData.append('estado', estado);
-
+      if (precio.trim()) formData.append('precio', precio.trim());
+      if (aforo.trim()) formData.append('aforo_maximo', aforo.trim());
       // Si hay una foto seleccionada localmente en el carrete, la empaquetamos
       if (fotoUrl && (fotoUrl.startsWith('file:') || fotoUrl.startsWith('content:'))) {
         const filename = fotoUrl.split('/').pop();
@@ -209,6 +212,31 @@ export default function EventoFormScreen({ route, navigation }: any) {
         multiline
         numberOfLines={4}
       />
+
+      <View style={styles.pickerRow}>
+        <View style={{ flex: 0.48 }}>
+          <Text style={styles.label}>Precio (CLP)</Text>
+          <TextInput
+            style={styles.input}
+            value={precio}
+            onChangeText={setPrecio}
+            placeholder="Ej: 10000"
+            placeholderTextColor="#555"
+            keyboardType="numeric"
+          />
+        </View>
+        <View style={{ flex: 0.48 }}>
+          <Text style={styles.label}>Aforo máximo</Text>
+          <TextInput
+            style={styles.input}
+            value={aforo}
+            onChangeText={setAforo}
+            placeholder="Ej: 300"
+            placeholderTextColor="#555"
+            keyboardType="numeric"
+          />
+        </View>
+      </View>
 
       <Text style={styles.label}>Fecha y Hora del evento *</Text>
       <View style={styles.pickerRow}>

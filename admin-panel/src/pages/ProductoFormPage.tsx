@@ -104,8 +104,8 @@ export function ProductoFormPage() {
 
     const crearMutation = useMutation({
         mutationFn: (data: ProductoInput) => productosApi.create(data, imagenFile ?? undefined),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["productos"] })
+        onSuccess: async () => {
+            await queryClient.refetchQueries({ queryKey: ["productos"] })
             toast.success("Producto creado con éxito")
             navigate("/productos")
         },
@@ -117,9 +117,9 @@ export function ProductoFormPage() {
     const actualizarMutation = useMutation({
         mutationFn: (data: Partial<ProductoInput>) =>
             productosApi.update(Number(id), data, imagenFile ?? undefined),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["productos"] })
-            queryClient.invalidateQueries({ queryKey: ["producto", id] })
+        onSuccess: async () => {
+            await queryClient.refetchQueries({ queryKey: ["productos"] })
+            queryClient.removeQueries({ queryKey: ["producto", id] })
             toast.success("Producto actualizado con éxito")
             navigate("/productos")
         },

@@ -13,7 +13,7 @@ export class CreateEventoDto {
 
   @Type(() => Number)
   @IsInt()
-  @Min(1)                       // ← antes era 0
+  @Min(0)                       // ← 0 permite eventos gratuitos
   precio: number;
 
   @IsOptional()                 // ← lo hacemos opcional (schema lo permite null)
@@ -39,7 +39,7 @@ export class UpdateEventoDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(1)                       // ← antes era 0
+  @Min(0)                       // ← 0 permite eventos gratuitos
   precio?: number;
 
   @IsOptional()

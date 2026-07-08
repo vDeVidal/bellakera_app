@@ -50,8 +50,6 @@ services:
     restart: unless-stopped
     ports:
       - "5173:5173"
-    environment:
-      VITE_API_URL: http://localhost:3000
     volumes:
       - ./admin-panel:/app
       - /app/node_modules

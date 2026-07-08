@@ -34,6 +34,11 @@ export function ColaPage() {
             ventasApi.updateEstado(id, estado),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ["cola-pedidos"] })
+            queryClient.invalidateQueries({ queryKey: ["ventas"] })
+            // Al cancelar desde cola también se restaura stock
+            if (variables.estado === 'cancelado' || variables.estado === 'entregado') {
+                queryClient.invalidateQueries({ queryKey: ["productos"] })
+            }
             toast.success(`Pedido marcado como: ${variables.estado.toUpperCase()}`)
         },
         onError: (e: any) => {
@@ -46,6 +51,9 @@ export function ColaPage() {
         mutationFn: (id: number) => ventasApi.cancelar(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["cola-pedidos"] })
+            queryClient.invalidateQueries({ queryKey: ["ventas"] })
+            // Cancelar devuelve el stock de bebidas
+            queryClient.invalidateQueries({ queryKey: ["productos"] })
             toast.success("Pedido cancelado")
         },
         onError: (e: any) => {

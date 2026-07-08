@@ -47,7 +47,7 @@ export class VentasService {
             for (const item of dto.items) {
                 if (dto.tipo_venta === 'ENTRADA') {
                     // Entrada: usar precio del evento
-                    if (!evento.precio) {
+                    if (evento.precio === null || evento.precio === undefined) {
                         throw new BadRequestException(
                             'El evento no tiene precio configurado',
                         );

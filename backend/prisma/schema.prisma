@@ -64,7 +64,7 @@ model Evento {
   nombre        String
   descripcion   String?
   fecha         DateTime
-  precio        Float      // Precio de entrada base en CLP
+  precio        Int        // Precio de entrada base en CLP
   imagen_url    String?
   estado        String   @default("activo") // ACTIVO, CERRADO, CANCELADO
   aforo_maximo  Int?
@@ -83,7 +83,7 @@ model Producto {
   id             Int      @id @default(autoincrement())
   nombre         String
   descripcion    String?
-  precio         Float      // Precio en CLP
+  precio         Int        // Precio en CLP
   stock          Int      @default(0)
   disponible     Boolean  @default(true)
   imagen_url     String?

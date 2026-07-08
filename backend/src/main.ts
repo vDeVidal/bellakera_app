@@ -15,6 +15,9 @@ async function bootstrap() {
       whitelist: true,
       transform: true,
       forbidNonWhitelisted: false,
+      transformOptions: {
+        enableImplicitConversion: true,   // ← convierte strings de FormData a number/bool automáticamente
+      },
     }),
   );
 
